@@ -1289,8 +1289,504 @@
             gap: 8px;
         }
     </style>
+	<style>
+/* Existing CSS remains the same until the responsive section */
+
+/* ================= IMPROVED RESPONSIVE STYLES ================= */
+
+/* Tablet and small desktop (992px and below) */
+@media (max-width: 992px) {
+  .sidebar {
+    width: 70px;
+    overflow: hidden;
+    transform: translateX(0);
+    transition: transform 0.3s ease;
+  }
+  
+  .sidebar.collapsed {
+    transform: translateX(-100%);
+  }
+
+  .sidebar-header h2, .nav-text {
+    display: none;
+  }
+
+  .nav-link {
+    justify-content: center;
+    padding: 15px 0;
+    margin: 2px 5px;
+    border-radius: 8px;
+  }
+
+  .nav-link i {
+    margin-right: 0;
+    font-size: 1.3rem;
+  }
+
+  .main-content {
+    margin-left: 70px;
+    transition: margin-left 0.3s ease;
+  }
+  
+  .main-content.full-width {
+    margin-left: 0;
+  }
+  
+  /* Improved card layout */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  /* Chart improvements */
+  .chart-container {
+    height: 250px;
+  }
+  
+  /* Header improvements */
+  .header {
+    flex-wrap: wrap;
+  }
+  
+  .header-actions {
+    margin-top: 15px;
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  /* Mobile menu toggle */
+  .mobile-menu-toggle {
+    display: block;
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 1100;
+    background: var(--primary-color);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  }
+}
+
+/* Tablet portrait and large phones (768px and below) */
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .input-group-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .borrower-info {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .borrower-stats {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .borrower-stat {
+    min-width: calc(50% - 10px);
+    margin-bottom: 10px;
+  }
+  
+  /* Card improvements */
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .card-header .header-actions {
+    margin-top: 15px;
+    width: 100%;
+  }
+  
+  /* Form improvements */
+  .form-control {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+  
+  /* Table improvements */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  table {
+    min-width: 600px;
+  }
+  
+  /* Modal improvements */
+  .modal-content {
+    width: 95%;
+    margin: 10px;
+  }
+  
+  /* Chart container improvements */
+  .chart-container {
+    height: 200px;
+    padding: 15px;
+  }
+}
+
+/* Mobile devices (576px and below) */
+@media (max-width: 576px) {
+  .sidebar {
+    width: 100%;
+    height: 100%;
+    transform: translateX(-100%);
+    z-index: 1000;
+  }
+  
+  .sidebar.active {
+    transform: translateX(0);
+  }
+  
+  .sidebar-menu {
+    display: block;
+    padding: 10px 0;
+  }
+
+  .nav-link {
+    padding: 12px 20px;
+    border-left: none;
+    border-bottom: 3px solid transparent;
+    margin: 0 5px;
+    justify-content: flex-start;
+    border-radius: 0;
+  }
+
+  .nav-link:hover, .nav-link.active {
+    border-left: none;
+    border-bottom: 3px solid var(--sidebar-active);
+    background-color: var(--sidebar-hover);
+  }
+  
+  .nav-text {
+    display: inline-block;
+    margin-left: 10px;
+  }
+
+  .main-content {
+    margin-left: 0;
+    padding: 15px;
+  }
+  
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 15px;
+    margin-top: 50px; /* Space for mobile menu */
+  }
+  
+  .header-title h1 {
+    font-size: 1.5rem;
+  }
+  
+  .header-actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 10px;
+  }
+  
+  /* Button improvements for mobile */
+  .btn {
+    padding: 10px 15px;
+    font-size: 14px;
+    min-height: 44px; /* Touch-friendly size */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .btn-icon {
+    width: 44px;
+    height: 44px;
+  }
+  
+  /* Borrower tabs improvements */
+  .borrower-tabs {
+    overflow-x: auto;
+    white-space: nowrap;
+    flex-wrap: nowrap;
+    padding-bottom: 5px;
+  }
+  
+  .borrower-tab {
+    padding: 12px 15px;
+    font-size: 0.9rem;
+  }
+  
+  .borrower-stat {
+    min-width: 100%;
+    padding: 10px 15px;
+  }
+  
+  .borrower-stat p {
+    font-size: 1rem;
+  }
+  
+  /* Form improvements */
+  .input-group label {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+  
+  /* Modal improvements */
+  .modal-content {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    border-radius: 0;
+  }
+  
+  /* FAB improvements */
+  .fab-container {
+    bottom: 20px;
+    right: 20px;
+  }
+  
+  .fab {
+    width: 60px;
+    height: 60px;
+  }
+  
+  /* Settings improvements */
+  .settings-container {
+    grid-template-columns: 1fr;
+  }
+  
+  /* Filter improvements */
+  .filter-row {
+    grid-template-columns: 1fr;
+  }
+  
+  /* Hide less important elements on mobile */
+  .no-mobile {
+    display: none !important;
+  }
+}
+
+/* Very small mobile devices (400px and below) */
+@media (max-width: 400px) {
+  .header-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .header-actions .btn {
+    width: 100%;
+    margin-bottom: 5px;
+  }
+  
+  .language-selector, .currency-selector {
+    display: flex;
+    width: 100%;
+  }
+  
+  .language-selector .btn, .currency-selector .btn {
+    flex: 1;
+  }
+  
+  .stats-grid {
+    gap: 10px;
+  }
+  
+  .stat-card {
+    padding: 15px;
+  }
+  
+  .stat-card p {
+    font-size: 1.5rem;
+  }
+}
+
+/* Dark mode adjustments for mobile */
+@media (max-width: 768px) {
+  .dark-mode .sidebar {
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* Print styles remain the same */
+
+/* ================= ENHANCED ELEMENTS ================= */
+
+/* Mobile menu toggle button */
+.mobile-menu-toggle {
+  display: none;
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  z-index: 1100;
+  background: var(--primary-color);
+  color: white;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  border: none;
+  cursor: pointer;
+}
+
+/* Improved touch targets for interactive elements */
+.action-button {
+  width: 36px;
+  height: 36px;
+  margin: 4px;
+}
+
+/* Better scrolling on mobile */
+.mobile-scroll {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+}
+
+/* Prevent zoom on iOS input fields */
+@media (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Enhanced select options for mobile */
+@media (max-width: 768px) {
+  .select-options {
+    overflow-x: auto;
+    padding-bottom: 10px;
+  }
+  
+  .select-option {
+    min-width: 120px;
+  }
+}
+
+/* Improved chart responsiveness */
+.chart-container canvas {
+  max-width: 100%;
+  height: auto !important;
+}
+
+/* Better table display on mobile */
+@media (max-width: 768px) {
+  table th, table td {
+    padding: 10px 5px;
+    font-size: 0.85rem;
+  }
+  
+  table th:nth-child(n+4),
+  table td:nth-child(n+4) {
+    display: none;
+  }
+  
+  .responsive-table {
+    display: block;
+    width: 100%;
+  }
+  
+  .responsive-table thead {
+    display: none;
+  }
+  
+  .responsive-table tbody, 
+  .responsive-table tr, 
+  .responsive-table td {
+    display: block;
+    width: 100%;
+  }
+  
+  .responsive-table tr {
+    margin-bottom: 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .responsive-table td {
+    text-align: right;
+    padding: 10px 15px;
+    position: relative;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .responsive-table td:last-child {
+    border-bottom: none;
+  }
+  
+  .responsive-table td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 15px;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    color: var(--text-light);
+  }
+}
+
+/* Orientation-specific styles */
+@media (max-width: 768px) and (orientation: landscape) {
+  .sidebar {
+    width: 250px;
+  }
+  
+  .main-content {
+    margin-left: 0;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* High-resolution devices */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .stat-card, .card {
+    border-radius: 16px;
+  }
+  
+  .btn {
+    border-radius: 10px;
+  }
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Dark mode contrast improvements */
+@media (max-width: 768px) {
+  .dark-mode .card {
+    border: 1px solid var(--border-color);
+  }
+  
+  .dark-mode .nav-link {
+    border-left-color: transparent;
+  }
+}
+
+</style>
 </head>
 <body>
+<button class="mobile-menu-toggle" style="display: none;">
+  <i class="fas fa-bars"></i>
+</button>
     <div class="container">
         <!-- Sidebar Navigation -->
         <div class="sidebar">
@@ -6881,6 +7377,100 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
             
             observer.observe(settingsSection, { attributes: true });
         });
+		
+		// Mobile menu functionality
+function initMobileMenu() {
+  const mobileMenuToggle = document.createElement('button');
+  mobileMenuToggle.className = 'mobile-menu-toggle';
+  mobileMenuToggle.innerHTML = '<i class="fas fa-bars"></i>';
+  document.body.appendChild(mobileMenuToggle);
+  
+  const sidebar = document.querySelector('.sidebar');
+  const mainContent = document.querySelector('.main-content');
+  
+  mobileMenuToggle.addEventListener('click', function() {
+    sidebar.classList.toggle('active');
+    mobileMenuToggle.classList.toggle('active');
+    
+    if (sidebar.classList.contains('active')) {
+      mobileMenuToggle.innerHTML = '<i class="fas fa-times"></i>';
+    } else {
+      mobileMenuToggle.innerHTML = '<i class="fas fa-bars"></i>';
+    }
+  });
+  
+  // Close menu when clicking outside
+  document.addEventListener('click', function(event) {
+    if (sidebar.classList.contains('active') && 
+        !sidebar.contains(event.target) && 
+        !mobileMenuToggle.contains(event.target)) {
+      sidebar.classList.remove('active');
+      mobileMenuToggle.innerHTML = '<i class="fas fa-bars"></i>';
+    }
+  });
+  
+  // Handle resize events
+  window.addEventListener('resize', function() {
+    if (window.innerWidth > 576) {
+      sidebar.classList.remove('active');
+      mobileMenuToggle.innerHTML = '<i class="fas fa-bars"></i>';
+    }
+  });
+}
+
+// Enhance tables for mobile
+function makeTablesResponsive() {
+  document.querySelectorAll('table').forEach(table => {
+    if (window.innerWidth <= 768) {
+      table.classList.add('responsive-table');
+      
+      // Add data labels
+      const headers = Array.from(table.querySelectorAll('th'));
+      table.querySelectorAll('tbody tr').forEach(row => {
+        Array.from(row.querySelectorAll('td')).forEach((cell, index) => {
+          if (headers[index]) {
+            cell.setAttribute('data-label', headers[index].textContent);
+          }
+        });
+      });
+    } else {
+      table.classList.remove('responsive-table');
+    }
+  });
+}
+
+// Initialize responsive behaviors when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+  initMobileMenu();
+  makeTablesResponsive();
+  
+  // Re-run on resize
+  window.addEventListener('resize', makeTablesResponsive);
+});
+
+// Enhance chart responsiveness
+function initResponsiveCharts() {
+  if (typeof Chart !== 'undefined') {
+    // Make charts responsive
+    Chart.defaults.maintainAspectRatio = false;
+    
+    // Update charts on resize
+    window.addEventListener('resize', function() {
+      if (window.loanPerformanceChart) {
+        window.loanPerformanceChart.resize();
+      }
+      if (window.portfolioDistributionChart) {
+        window.portfolioDistributionChart.resize();
+      }
+      if (window.profitChart) {
+        window.profitChart.resize();
+      }
+    });
+  }
+}
+
+// Call this when charts are initialized
+initResponsiveCharts();
     </script>
 </body>
 </html>
