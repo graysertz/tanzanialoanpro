@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TanzaniaLoanPro - Loan Management System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+ 
+ 
+ 
+ <style>
         :root {
             --primary-color: #2e86de;
             --secondary-color: #54a0ff;
@@ -1157,639 +1161,15 @@
             font-weight: bold;
             color: var(--primary-color);
         }
-		
-		settings-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        
-        @media (max-width: 992px) {
-            .settings-container {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        .settings-card {
-            margin-bottom: 20px;
-        }
-        
-        .settings-group {
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .settings-group:last-child {
-            border-bottom: none;
-        }
-        
-        .settings-group h4 {
-            color: var(--primary-color);
-            margin-bottom: 15px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .role-permissions {
-            margin-top: 15px;
-        }
-        
-        .permission-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
-            padding: 8px;
-            background-color: var(--light-color);
-            border-radius: 6px;
-        }
-        
-        .permission-item i {
-            margin-right: 10px;
-            color: var(--success-color);
-        }
-        
-        .user-role-badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-right: 8px;
-            margin-bottom: 8px;
-        }
-        
-        .role-admin {
-            background-color: rgba(231, 76, 60, 0.2);
-            color: #e74c3c;
-        }
-        
-        .role-manager {
-            background-color: rgba(241, 196, 15, 0.2);
-            color: #f1c40f;
-        }
-        
-        .role-loan-officer {
-            background-color: rgba(46, 134, 222, 0.2);
-            color: #2e86de;
-        }
-        
-        .role-readonly {
-            background-color: rgba(149, 165, 166, 0.2);
-            color: #95a5a6;
-        }
-        
-        .backup-status {
-            display: flex;
-            align-items: center;
-            padding: 12px;
-            background-color: var(--light-color);
-            border-radius: 8px;
-            margin-top: 15px;
-        }
-        
-        .backup-status i {
-            margin-right: 10px;
-            font-size: 1.2rem;
-            color: var(--success-color);
-        }
-        
-        .integration-status {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px;
-            background-color: var(--light-color);
-            border-radius: 8px;
-            margin-top: 10px;
-        }
-        
-        .integration-status .status-indicator {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 8px;
-        }
-        
-        .status-active {
-            background-color: var(--success-color);
-        }
-        
-        .status-inactive {
-            background-color: var(--danger-color);
-        }
-        
-        .integration-info {
-            display: flex;
-            align-items: center;
-        }
-        
-        .integration-actions {
-            display: flex;
-            gap: 8px;
-        }
     </style>
-	<style>
-/* Existing CSS remains the same until the responsive section */
-
-/* ================= IMPROVED RESPONSIVE STYLES ================= */
-
-/* Tablet and small desktop (992px and below) */
-@media (max-width: 992px) {
-  .sidebar {
-    width: 70px;
-    overflow: hidden;
-    transform: translateX(0);
-    transition: transform 0.3s ease;
-  }
-  
-  .sidebar.collapsed {
-    transform: translateX(-100%);
-  }
-
-  .sidebar-header h2, .nav-text {
-    display: none;
-  }
-
-  .nav-link {
-    justify-content: center;
-    padding: 15px 0;
-    margin: 2px 5px;
-    border-radius: 8px;
-  }
-
-  .nav-link i {
-    margin-right: 0;
-    font-size: 1.3rem;
-  }
-
-  .main-content {
-    margin-left: 70px;
-    transition: margin-left 0.3s ease;
-  }
-  
-  .main-content.full-width {
-    margin-left: 0;
-  }
-  
-  /* Improved card layout */
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  /* Chart improvements */
-  .chart-container {
-    height: 250px;
-  }
-  
-  /* Header improvements */
-  .header {
-    flex-wrap: wrap;
-  }
-  
-  .header-actions {
-    margin-top: 15px;
-    width: 100%;
-    justify-content: flex-start;
-  }
-  
-  /* Mobile menu toggle */
-  .mobile-menu-toggle {
-    display: block;
-    position: fixed;
-    top: 15px;
-    left: 15px;
-    z-index: 1100;
-    background: var(--primary-color);
-    color: white;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-  }
-}
-
-/* Tablet portrait and large phones (768px and below) */
-@media (max-width: 768px) {
-  .stats-grid {
-    grid-template-columns: 1fr;
-    gap: 15px;
-  }
-  
-  .input-group-row {
-    grid-template-columns: 1fr;
-  }
-  
-  .borrower-info {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .borrower-stats {
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-  
-  .borrower-stat {
-    min-width: calc(50% - 10px);
-    margin-bottom: 10px;
-  }
-  
-  /* Card improvements */
-  .card-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .card-header .header-actions {
-    margin-top: 15px;
-    width: 100%;
-  }
-  
-  /* Form improvements */
-  .form-control {
-    font-size: 16px; /* Prevents zoom on iOS */
-  }
-  
-  /* Table improvements */
-  .table-responsive {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  
-  table {
-    min-width: 600px;
-  }
-  
-  /* Modal improvements */
-  .modal-content {
-    width: 95%;
-    margin: 10px;
-  }
-  
-  /* Chart container improvements */
-  .chart-container {
-    height: 200px;
-    padding: 15px;
-  }
-}
-
-/* Mobile devices (576px and below) */
-@media (max-width: 576px) {
-  .sidebar {
-    width: 100%;
-    height: 100%;
-    transform: translateX(-100%);
-    z-index: 1000;
-  }
-  
-  .sidebar.active {
-    transform: translateX(0);
-  }
-  
-  .sidebar-menu {
-    display: block;
-    padding: 10px 0;
-  }
-
-  .nav-link {
-    padding: 12px 20px;
-    border-left: none;
-    border-bottom: 3px solid transparent;
-    margin: 0 5px;
-    justify-content: flex-start;
-    border-radius: 0;
-  }
-
-  .nav-link:hover, .nav-link.active {
-    border-left: none;
-    border-bottom: 3px solid var(--sidebar-active);
-    background-color: var(--sidebar-hover);
-  }
-  
-  .nav-text {
-    display: inline-block;
-    margin-left: 10px;
-  }
-
-  .main-content {
-    margin-left: 0;
-    padding: 15px;
-  }
-  
-  .header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
-    padding: 15px;
-    margin-top: 50px; /* Space for mobile menu */
-  }
-  
-  .header-title h1 {
-    font-size: 1.5rem;
-  }
-  
-  .header-actions {
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    gap: 10px;
-  }
-  
-  /* Button improvements for mobile */
-  .btn {
-    padding: 10px 15px;
-    font-size: 14px;
-    min-height: 44px; /* Touch-friendly size */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .btn-icon {
-    width: 44px;
-    height: 44px;
-  }
-  
-  /* Borrower tabs improvements */
-  .borrower-tabs {
-    overflow-x: auto;
-    white-space: nowrap;
-    flex-wrap: nowrap;
-    padding-bottom: 5px;
-  }
-  
-  .borrower-tab {
-    padding: 12px 15px;
-    font-size: 0.9rem;
-  }
-  
-  .borrower-stat {
-    min-width: 100%;
-    padding: 10px 15px;
-  }
-  
-  .borrower-stat p {
-    font-size: 1rem;
-  }
-  
-  /* Form improvements */
-  .input-group label {
-    font-size: 16px; /* Prevents zoom on iOS */
-  }
-  
-  /* Modal improvements */
-  .modal-content {
-    width: 100%;
-    height: 100%;
-    max-height: 100%;
-    border-radius: 0;
-  }
-  
-  /* FAB improvements */
-  .fab-container {
-    bottom: 20px;
-    right: 20px;
-  }
-  
-  .fab {
-    width: 60px;
-    height: 60px;
-  }
-  
-  /* Settings improvements */
-  .settings-container {
-    grid-template-columns: 1fr;
-  }
-  
-  /* Filter improvements */
-  .filter-row {
-    grid-template-columns: 1fr;
-  }
-  
-  /* Hide less important elements on mobile */
-  .no-mobile {
-    display: none !important;
-  }
-}
-
-/* Very small mobile devices (400px and below) */
-@media (max-width: 400px) {
-  .header-actions {
-    flex-direction: column;
-    width: 100%;
-  }
-  
-  .header-actions .btn {
-    width: 100%;
-    margin-bottom: 5px;
-  }
-  
-  .language-selector, .currency-selector {
-    display: flex;
-    width: 100%;
-  }
-  
-  .language-selector .btn, .currency-selector .btn {
-    flex: 1;
-  }
-  
-  .stats-grid {
-    gap: 10px;
-  }
-  
-  .stat-card {
-    padding: 15px;
-  }
-  
-  .stat-card p {
-    font-size: 1.5rem;
-  }
-}
-
-/* Dark mode adjustments for mobile */
-@media (max-width: 768px) {
-  .dark-mode .sidebar {
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-  }
-}
-
-/* Print styles remain the same */
-
-/* ================= ENHANCED ELEMENTS ================= */
-
-/* Mobile menu toggle button */
-.mobile-menu-toggle {
-  display: none;
-  position: fixed;
-  top: 15px;
-  left: 15px;
-  z-index: 1100;
-  background: var(--primary-color);
-  color: white;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-  border: none;
-  cursor: pointer;
-}
-
-/* Improved touch targets for interactive elements */
-.action-button {
-  width: 36px;
-  height: 36px;
-  margin: 4px;
-}
-
-/* Better scrolling on mobile */
-.mobile-scroll {
-  -webkit-overflow-scrolling: touch;
-  overflow-y: auto;
-}
-
-/* Prevent zoom on iOS input fields */
-@media (max-width: 768px) {
-  input, select, textarea {
-    font-size: 16px !important;
-  }
-}
-
-/* Enhanced select options for mobile */
-@media (max-width: 768px) {
-  .select-options {
-    overflow-x: auto;
-    padding-bottom: 10px;
-  }
-  
-  .select-option {
-    min-width: 120px;
-  }
-}
-
-/* Improved chart responsiveness */
-.chart-container canvas {
-  max-width: 100%;
-  height: auto !important;
-}
-
-/* Better table display on mobile */
-@media (max-width: 768px) {
-  table th, table td {
-    padding: 10px 5px;
-    font-size: 0.85rem;
-  }
-  
-  table th:nth-child(n+4),
-  table td:nth-child(n+4) {
-    display: none;
-  }
-  
-  .responsive-table {
-    display: block;
-    width: 100%;
-  }
-  
-  .responsive-table thead {
-    display: none;
-  }
-  
-  .responsive-table tbody, 
-  .responsive-table tr, 
-  .responsive-table td {
-    display: block;
-    width: 100%;
-  }
-  
-  .responsive-table tr {
-    margin-bottom: 15px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    overflow: hidden;
-  }
-  
-  .responsive-table td {
-    text-align: right;
-    padding: 10px 15px;
-    position: relative;
-    border-bottom: 1px solid var(--border-color);
-  }
-  
-  .responsive-table td:last-child {
-    border-bottom: none;
-  }
-  
-  .responsive-table td::before {
-    content: attr(data-label);
-    position: absolute;
-    left: 15px;
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    color: var(--text-light);
-  }
-}
-
-/* Orientation-specific styles */
-@media (max-width: 768px) and (orientation: landscape) {
-  .sidebar {
-    width: 250px;
-  }
-  
-  .main-content {
-    margin-left: 0;
-  }
-  
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-/* High-resolution devices */
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .stat-card, .card {
-    border-radius: 16px;
-  }
-  
-  .btn {
-    border-radius: 10px;
-  }
-}
-
-/* Reduced motion for accessibility */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* Dark mode contrast improvements */
-@media (max-width: 768px) {
-  .dark-mode .card {
-    border: 1px solid var(--border-color);
-  }
-  
-  .dark-mode .nav-link {
-    border-left-color: transparent;
-  }
-}
-
-</style>
+	
 </head>
 <body>
-<button class="mobile-menu-toggle" style="display: none;">
-  <i class="fas fa-bars"></i>
-</button>
+
     <div class="container">
         <!-- Sidebar Navigation -->
         <div class="sidebar">
+		
             <div class="sidebar-header">
                 <h2 id="appTitle">TanzaniaLoanPro</h2>
             </div>
@@ -1955,6 +1335,7 @@
                     </div>
                 </div>
             </div>
+            
             <!-- All Borrowers Section -->
             <div id="all-borrowers" class="section">
                 <div class="card">
@@ -3623,68 +3004,69 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
         </div>
     </div>
 
-     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // DOM Elements
-        const logoutBtn = document.getElementById('logoutBtn');
-        const darkModeToggle = document.getElementById('darkModeToggle');
-        const notification = document.getElementById('notification');
-        const languageButtons = document.querySelectorAll('.language-btn');
-        const currencyButtons = document.querySelectorAll('.currency-btn');
-        const navLinks = document.querySelectorAll('.nav-link');
-        const sections = document.querySelectorAll('.section');
-        const borrowerTabs = document.querySelectorAll('.borrower-tab');
-        const borrowerContents = document.querySelectorAll('.borrower-content');
-        const fabMain = document.getElementById('fabMain');
-        const fabMenu = document.getElementById('fabMenu');
+         // DOM Elements
+    const logoutBtn = document.getElementById('logoutBtn');
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const notification = document.getElementById('notification');
+    const languageButtons = document.querySelectorAll('.language-btn');
+    const currencyButtons = document.querySelectorAll('.currency-btn');
+    const navLinks = document.querySelectorAll('.nav-link');
+    const sections = document.querySelectorAll('.section');
+    const borrowerTabs = document.querySelectorAll('.borrower-tab');
+    const borrowerContents = document.querySelectorAll('.borrower-content');
+    const fabMain = document.getElementById('fabMain');
+    const fabMenu = document.getElementById('fabMenu');
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
 
-        // Current language and currency
-        let currentLanguage = 'en';
-        let currentCurrency = 'TZS';
-        let currentBorrowerId = null;
-        let currentUser = {
+    // Current language and currency
+    let currentLanguage = 'en';
+    let currentCurrency = 'TZS';
+    let currentBorrowerId = null;
+    let currentUser = {
+        id: 'user-1',
+        name: 'Admin User',
+        email: 'admin@tanzanialoanpro.com',
+        role: 'Administrator',
+        regions: ['All'],
+        active: true
+    };
+
+    // Data storage
+    let borrowers = JSON.parse(localStorage.getItem('borrowers')) || [];
+    let repayments = JSON.parse(localStorage.getItem('repayments')) || [];
+    let paymentSchedules = JSON.parse(localStorage.getItem('paymentSchedules')) || [];
+    let reminders = JSON.parse(localStorage.getItem('reminders')) || [];
+    let users = JSON.parse(localStorage.getItem('users')) || [
+        {
             id: 'user-1',
             name: 'Admin User',
             email: 'admin@tanzanialoanpro.com',
             role: 'Administrator',
             regions: ['All'],
-            active: true
-        };
+            active: true,
+            lastLogin: new Date().toISOString()
+        }
+    ];
 
-        // Data storage
-        let borrowers = JSON.parse(localStorage.getItem('borrowers')) || [];
-        let repayments = JSON.parse(localStorage.getItem('repayments')) || [];
-        let paymentSchedules = JSON.parse(localStorage.getItem('paymentSchedules')) || [];
-        let reminders = JSON.parse(localStorage.getItem('reminders')) || [];
-        let users = JSON.parse(localStorage.getItem('users')) || [
-            {
-                id: 'user-1',
-                name: 'Admin User',
-                email: 'admin@tanzanialoanpro.com',
-                role: 'Administrator',
-                regions: ['All'],
-                active: true,
-                lastLogin: new Date().toISOString()
-            }
-        ];
-
-        // System settings
-        let systemSettings = JSON.parse(localStorage.getItem('systemSettings')) || {
-            systemName: 'TanzaniaLoanPro',
-            defaultCurrency: 'TZS',
-            defaultLanguage: 'en',
-            timezone: 'Africa/Dar_es_Salaam',
-            smsIntegration: 'africas_talking',
-            emailIntegration: 'smtp',
-            backupFrequency: 'weekly',
-            backupLocation: 'cloud'
-        };
+    // System settings
+    let systemSettings = JSON.parse(localStorage.getItem('systemSettings')) || {
+        systemName: 'TanzaniaLoanPro',
+        defaultCurrency: 'TZS',
+        defaultLanguage: 'en',
+        timezone: 'Africa/Dar_es_Salaam',
+        smsIntegration: 'africas_talking',
+        emailIntegration: 'smtp',
+        backupFrequency: 'weekly',
+        backupLocation: 'cloud'
+    };
 
         // Chart instances
-        let loanPerformanceChart = null;
-        let portfolioDistributionChart = null;
-        let profitChart = null;
-        let reportChart = null;
+    let loanPerformanceChart = null;
+    let portfolioDistributionChart = null;
+    let profitChart = null;
+    let reportChart = null;
 
         // Translations for multilingual support
         const translations = {
@@ -3771,19 +3153,18 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
         };
 
         // Initialize the app
-        function initApp() {
-            // Load data from localStorage
-            loadData();
+    function initApp() {
+        // Load data from localStorage
+        loadData();
 
-            // Set today's date as default for date fields
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('startDate').value = today;
-            document.getElementById('repaymentDate').value = today;
+        // Set today's date as default for date fields
+        const today = new Date().toISOString().split('T')[0];
+        if (document.getElementById('calcStartDate')) {
             document.getElementById('calcStartDate').value = today;
-            document.getElementById('reportFromDate').value = getFirstDayOfMonth();
-            document.getElementById('reportToDate').value = today;
-            
-            // Set system name
+        }
+        
+        // Set system name
+        if (document.getElementById('systemName')) {
             document.getElementById('systemName').value = systemSettings.systemName;
             document.getElementById('defaultCurrency').value = systemSettings.defaultCurrency;
             document.getElementById('defaultLanguage').value = systemSettings.defaultLanguage;
@@ -3792,78 +3173,89 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
             document.getElementById('emailIntegration').value = systemSettings.emailIntegration;
             document.getElementById('backupFrequency').value = systemSettings.backupFrequency;
             document.getElementById('backupLocation').value = systemSettings.backupLocation;
+        }
 
-            // Update interest rate label to "Simple Interest Rate"
-            updateInterestRateLabel();
-
-            // Event listeners
-            logoutBtn.addEventListener('click', handleLogout);
-            darkModeToggle.addEventListener('click', toggleDarkMode);
-            
-            // Language toggle
-            languageButtons.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const lang = btn.dataset.lang;
-                    setLanguage(lang);
-                    updateInterestRateLabel();
-                });
+        // Add close functionality to modal close buttons
+        document.querySelectorAll('.close-modal').forEach(button => {
+            button.addEventListener('click', function() {
+                this.closest('.modal').style.display = 'none';
             });
-            
-            // Currency toggle
-            currencyButtons.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const currency = btn.dataset.currency;
-                    setCurrency(currency);
-                });
+        });
+
+        // Close modals when clicking outside
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.style.display = 'none';
+                }
             });
-            
-            // Navigation
-            navLinks.forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const target = link.dataset.target;
-                    showSection(target);
-                });
+        });
+
+        // Event listeners
+        if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
+        if (darkModeToggle) darkModeToggle.addEventListener('click', toggleDarkMode);
+        
+        // Language toggle
+        languageButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const lang = btn.dataset.lang;
+                setLanguage(lang);
             });
-            
-            // Borrower tabs
-            borrowerTabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    const tabId = tab.dataset.tab;
-                    showBorrowerTab(tabId);
-                });
+        });
+        
+        // Currency toggle
+        currencyButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const currency = btn.dataset.currency;
+                setCurrency(currency);
             });
-            
-            // Initialize forms
-            initBorrowerForm();
-            initRepaymentForm();
-            initCalculatorForm();
-            initUserManagement();
-            initComplianceSection();
+        });
+        
+        // Navigation
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = link.dataset.target;
+                showSection(target);
+            });
+        });
+        
+        // Initialize forms
+        initBorrowerForm();
+        initRepaymentForm();
+        initCalculatorForm();
+        initUserManagement();
+        initComplianceSection();
 
-            // Floating action button
-            fabMain.addEventListener('click', toggleFabMenu);
-            document.addEventListener('click', closeFabMenuOnOutsideClick);
+        // Floating action button
+        if (fabMain) fabMain.addEventListener('click', toggleFabMenu);
+        document.addEventListener('click', closeFabMenuOnOutsideClick);
 
-            // Load dashboard data
-            loadDashboardData();
-            loadBorrowers();
-            loadTodaysRepayments();
-            loadReminders();
-            updateRoleCounts();
+        // Load dashboard data
+        loadDashboardData();
+        loadBorrowers();
+        loadReminders();
+        updateRoleCounts();
 
-            // Check for saved dark mode preference
-            if (localStorage.getItem('darkMode') === 'enabled') {
-                document.body.classList.add('dark-mode');
-                darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
-            }
+        // Check for saved dark mode preference
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            document.body.classList.add('dark-mode');
+            if (darkModeToggle) darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        }
 
-            // Set user role badge
+        // Set user role badge
+        if (document.getElementById('userRoleBadge')) {
             document.getElementById('userRoleBadge').textContent = currentUser.role;
             document.getElementById('userRoleBadge').className = `status-badge status-${currentUser.role.toLowerCase().replace(' ', '-')}`;
-            
-            // Apply role-based UI restrictions
-            applyRoleBasedUI();
+        }
+        
+        // Apply role-based UI restrictions
+        applyRoleBasedUI();
+    }
+
+        // Toggle sidebar on mobile
+        function toggleSidebar() {
+            sidebar.classList.toggle('active');
         }
 
         // Apply role-based UI restrictions
@@ -3893,10 +3285,12 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
             const officerCount = users.filter(u => u.role === 'Loan Officer').length;
             const readonlyCount = users.filter(u => u.role === 'Read Only').length;
             
-            document.getElementById('adminCount').textContent = adminCount;
-            document.getElementById('managerCount').textContent = managerCount;
-            document.getElementById('officerCount').textContent = officerCount;
-            document.getElementById('readonlyCount').textContent = readonlyCount;
+            if (document.getElementById('adminCount')) {
+                document.getElementById('adminCount').textContent = adminCount;
+                document.getElementById('managerCount').textContent = managerCount;
+                document.getElementById('officerCount').textContent = officerCount;
+                document.getElementById('readonlyCount').textContent = readonlyCount;
+            }
         }
 
         // Update interest rate label to "Simple Interest Rate"
@@ -4259,6 +3653,11 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
                 }
             });
             
+            // Close sidebar on mobile after selection
+            if (window.innerWidth <= 992) {
+                sidebar.classList.remove('active');
+            }
+            
             // Load section-specific data
             switch(sectionId) {
                 case 'home':
@@ -4287,7 +3686,10 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
 
         // Show borrower tab
         function showBorrowerTab(tabId) {
-            borrowerTabs.forEach(tab => {
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach(tab => {
                 if (tab.dataset.tab === tabId) {
                     tab.classList.add('active');
                 } else {
@@ -4295,7 +3697,7 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
                 }
             });
             
-            borrowerContents.forEach(content => {
+            tabContents.forEach(content => {
                 if (content.id === `${tabId}Tab`) {
                     content.classList.add('active');
                 } else {
@@ -4368,6 +3770,7 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
                 return;
             }
             
+            // Reset form and show modal
             document.getElementById('borrowerForm').reset();
             document.getElementById('photoPlaceholder').style.backgroundImage = '';
             document.getElementById('photoPlaceholder').innerHTML = '<i class="fas fa-user"></i>';
@@ -4383,6 +3786,7 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
                 idUploadContainer.remove();
             }
             
+            // Show the modal
             document.getElementById('newBorrowerModal').style.display = 'flex';
             fabMenu.classList.remove('active');
         }
@@ -4409,6 +3813,8 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
         // Initialize borrower form
         function initBorrowerForm() {
             const borrowerForm = document.getElementById('borrowerForm');
+            if (!borrowerForm) return;
+            
             const loanPurposeOptions = document.querySelectorAll('.loan-purpose-option');
             const idTypeOptions = document.querySelectorAll('.id-type-option');
             const photoUpload = document.getElementById('photoUpload');
@@ -4455,49 +3861,55 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
             });
             
             // Handle photo upload
-            photoUpload.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        photoPlaceholder.style.backgroundImage = `url(${event.target.result})`;
-                        photoPlaceholder.innerHTML = '';
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
+            if (photoUpload) {
+                photoUpload.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            photoPlaceholder.style.backgroundImage = `url(${event.target.result})`;
+                            photoPlaceholder.innerHTML = '';
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
             
             // Toggle group members
-            isGroupLoan.addEventListener('change', () => {
-                groupMembersContainer.style.display = isGroupLoan.checked ? 'block' : 'none';
-            });
+            if (isGroupLoan) {
+                isGroupLoan.addEventListener('change', () => {
+                    groupMembersContainer.style.display = isGroupLoan.checked ? 'block' : 'none';
+                });
+            }
             
             // Add group member
-            addGroupMemberBtn.addEventListener('click', () => {
-                const memberId = `member-${Date.now()}`;
-                const memberHtml = `
-                    <div class="group-member" id="${memberId}" style="margin-bottom: 15px; padding: 15px; border: 1px solid var(--border-color); border-radius: 4px;">
-                        <div class="input-group-row">
+            if (addGroupMemberBtn) {
+                addGroupMemberBtn.addEventListener('click', () => {
+                    const memberId = `member-${Date.now()}`;
+                    const memberHtml = `
+                        <div class="group-member" id="${memberId}" style="margin-bottom: 15px; padding: 15px; border: 1px solid var(--border-color); border-radius: 4px;">
+                            <div class="input-group-row">
+                                <div class="input-group">
+                                    <label>${translations[currentLanguage].personalInfo}</label>
+                                    <input type="text" class="form-control" required>
+                                </div>
+                                <div class="input-group">
+                                    <label>${translations[currentLanguage].phoneNumber}</label>
+                                    <input type="tel" class="form-control" placeholder="+255" required>
+                                </div>
+                            </div>
                             <div class="input-group">
-                                <label>${translations[currentLanguage].personalInfo}</label>
+                                <label>${translations[currentLanguage].idNumber}</label>
                                 <input type="text" class="form-control" required>
                             </div>
-                            <div class="input-group">
-                                <label>${translations[currentLanguage].phoneNumber}</label>
-                                <input type="tel" class="form-control" placeholder="+255" required>
-                            </div>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="document.getElementById('${memberId}').remove()" style="margin-top: 10px;">
+                                <i class="fas fa-times"></i> ${translations[currentLanguage].remove}
+                            </button>
                         </div>
-                        <div class="input-group">
-                            <label>${translations[currentLanguage].idNumber}</label>
-                            <input type="text" class="form-control" required>
-                        </div>
-                        <button type="button" class="btn btn-danger btn-sm" onclick="document.getElementById('${memberId}').remove()" style="margin-top: 10px;">
-                            <i class="fas fa-times"></i> ${translations[currentLanguage].remove}
-                        </button>
-                    </div>
-                `;
-                document.getElementById('groupMembersList').insertAdjacentHTML('beforeend', memberHtml);
-            });
+                    `;
+                    document.getElementById('groupMembersList').insertAdjacentHTML('beforeend', memberHtml);
+                });
+            }
             
             // Calculate total amount using simple interest
             const calculateTotal = () => {
@@ -4510,8 +3922,10 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
                 totalAmount.value = total.toFixed(2);
             };
             
-            loanAmount.addEventListener('input', calculateTotal);
-            interestRate.addEventListener('input', calculateTotal);
+            if (loanAmount && interestRate) {
+                loanAmount.addEventListener('input', calculateTotal);
+                interestRate.addEventListener('input', calculateTotal);
+            }
             
             // Handle form submission
             borrowerForm.addEventListener('submit', (e) => {
@@ -4549,7 +3963,7 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
                     amlChecked: document.getElementById('amlChecked').checked,
                     termsAccepted: document.getElementById('termsAccepted').checked,
                     boTCompliance: document.getElementById('boTCompliance').checked,
-                    isGroupLoan: isGroupLoan.checked,
+                    isGroupLoan: isGroupLoan ? isGroupLoan.checked : false,
                     groupMembers: [],
                     status: 'active',
                     balance: parseFloat(totalAmount.value),
@@ -4584,10 +3998,16 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
                 
                 // Reset form
                 borrowerForm.reset();
-                photoPlaceholder.style.backgroundImage = '';
-                photoPlaceholder.innerHTML = '<i class="fas fa-user"></i>';
-                document.getElementById('groupMembersList').innerHTML = '';
-                groupMembersContainer.style.display = 'none';
+                if (photoPlaceholder) {
+                    photoPlaceholder.style.backgroundImage = '';
+                    photoPlaceholder.innerHTML = '<i class="fas fa-user"></i>';
+                }
+                if (document.getElementById('groupMembersList')) {
+                    document.getElementById('groupMembersList').innerHTML = '';
+                }
+                if (groupMembersContainer) {
+                    groupMembersContainer.style.display = 'none';
+                }
                 
                 // Remove ID upload container if exists
                 const idUploadContainer = document.getElementById('idUploadContainer');
@@ -4616,48 +4036,58 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
             
             requiredFields.forEach(fieldId => {
                 const field = document.getElementById(fieldId);
-                if (!field.value.trim()) {
+                if (field && !field.value.trim()) {
                     field.style.borderColor = 'var(--danger-color)';
                     isValid = false;
-                } else {
+                } else if (field) {
                     field.style.borderColor = 'var(--border-color)';
                 }
             });
             
             // Validate phone number format
-            const phoneNumber = document.getElementById('phoneNumber').value;
-            if (!/^\+?\d{9,15}$/.test(phoneNumber)) {
-                document.getElementById('phoneNumber').style.borderColor = 'var(--danger-color)';
+            const phoneNumber = document.getElementById('phoneNumber');
+            if (phoneNumber && !/^\+?\d{9,15}$/.test(phoneNumber.value)) {
+                phoneNumber.style.borderColor = 'var(--danger-color)';
                 showNotification('Please enter a valid phone number', 'error');
                 isValid = false;
             }
             
             // Validate loan amount is positive
-            const loanAmount = parseFloat(document.getElementById('loanAmount').value);
-            if (isNaN(loanAmount) || loanAmount <= 0) {
-                document.getElementById('loanAmount').style.borderColor = 'var(--danger-color)';
-                showNotification('Loan amount must be a positive number', 'error');
-                isValid = false;
+            const loanAmount = document.getElementById('loanAmount');
+            if (loanAmount) {
+                const amount = parseFloat(loanAmount.value);
+                if (isNaN(amount) || amount <= 0) {
+                    loanAmount.style.borderColor = 'var(--danger-color)';
+                    showNotification('Loan amount must be a positive number', 'error');
+                    isValid = false;
+                }
             }
             
             // Validate interest rate is between 0 and 100
-            const interestRate = parseFloat(document.getElementById('interestRate').value);
-            if (isNaN(interestRate) || interestRate < 0 || interestRate > 100) {
-                document.getElementById('interestRate').style.borderColor = 'var(--danger-color)';
-                showNotification('Interest rate must be between 0 and 100', 'error');
-                isValid = false;
+            const interestRate = document.getElementById('interestRate');
+            if (interestRate) {
+                const rate = parseFloat(interestRate.value);
+                if (isNaN(rate) || rate < 0 || rate > 100) {
+                    interestRate.style.borderColor = 'var(--danger-color)';
+                    showNotification('Interest rate must be between 0 and 100', 'error');
+                    isValid = false;
+                }
             }
             
             // Validate loan term is positive
-            const loanTerm = parseInt(document.getElementById('loanTerm').value);
-            if (isNaN(loanTerm) || loanTerm <= 0) {
-                document.getElementById('loanTerm').style.borderColor = 'var(--danger-color)';
-                showNotification('Loan term must be a positive number', 'error');
-                isValid = false;
+            const loanTerm = document.getElementById('loanTerm');
+            if (loanTerm) {
+                const term = parseInt(loanTerm.value);
+                if (isNaN(term) || term <= 0) {
+                    loanTerm.style.borderColor = 'var(--danger-color)';
+                    showNotification('Loan term must be a positive number', 'error');
+                    isValid = false;
+                }
             }
             
             // Validate terms accepted
-            if (!document.getElementById('termsAccepted').checked) {
+            const termsAccepted = document.getElementById('termsAccepted');
+            if (termsAccepted && !termsAccepted.checked) {
                 showNotification('You must accept the terms and conditions', 'error');
                 isValid = false;
             }
@@ -4727,27 +4157,33 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
         // Initialize repayment form
         function initRepaymentForm() {
             const repaymentForm = document.getElementById('repaymentForm');
+            if (!repaymentForm) return;
+            
             const paymentMethod = document.getElementById('paymentMethod');
             const mobileMoneyOptions = document.getElementById('mobileMoneyOptions');
             const mobileMoneyProviders = document.querySelectorAll('.mobile-money-provider');
             
             // Toggle mobile money options
-            paymentMethod.addEventListener('change', () => {
-                if (paymentMethod.value === 'mobile') {
-                    mobileMoneyOptions.style.display = 'block';
-                } else {
-                    mobileMoneyOptions.style.display = 'none';
-                }
-            });
+            if (paymentMethod) {
+                paymentMethod.addEventListener('change', () => {
+                    if (paymentMethod.value === 'mobile') {
+                        mobileMoneyOptions.style.display = 'block';
+                    } else {
+                        mobileMoneyOptions.style.display = 'none';
+                    }
+                });
+            }
             
             // Set mobile money provider
-            mobileMoneyProviders.forEach(provider => {
-                provider.addEventListener('click', () => {
-                    mobileMoneyProviders.forEach(p => p.classList.remove('selected'));
-                    provider.classList.add('selected');
-                    document.getElementById('mobileMoneyProvider').value = provider.dataset.provider;
+            if (mobileMoneyProviders) {
+                mobileMoneyProviders.forEach(provider => {
+                    provider.addEventListener('click', () => {
+                        mobileMoneyProviders.forEach(p => p.classList.remove('selected'));
+                        provider.classList.add('selected');
+                        document.getElementById('mobileMoneyProvider').value = provider.dataset.provider;
+                    });
                 });
-            });
+            }
             
             // Handle form submission
             repaymentForm.addEventListener('submit', (e) => {
@@ -4793,7 +4229,9 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
                 
                 // Reset form
                 repaymentForm.reset();
-                mobileMoneyOptions.style.display = 'none';
+                if (mobileMoneyOptions) {
+                    mobileMoneyOptions.style.display = 'none';
+                }
                 
                 // Close modal
                 document.getElementById('recordPaymentModal').style.display = 'none';
@@ -4815,27 +4253,31 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
             
             requiredFields.forEach(fieldId => {
                 const field = document.getElementById(fieldId);
-                if (!field.value.trim()) {
+                if (field && !field.value.trim()) {
                     field.style.borderColor = 'var(--danger-color)';
                     isValid = false;
-                } else {
+                } else if (field) {
                     field.style.borderColor = 'var(--border-color)';
                 }
             });
             
             // Validate amount is positive
-            const amount = parseFloat(document.getElementById('repaymentAmount').value);
-            if (isNaN(amount) || amount <= 0) {
-                document.getElementById('repaymentAmount').style.borderColor = 'var(--danger-color)';
-                showNotification('Amount must be a positive number', 'error');
-                isValid = false;
+            const repaymentAmount = document.getElementById('repaymentAmount');
+            if (repaymentAmount) {
+                const amount = parseFloat(repaymentAmount.value);
+                if (isNaN(amount) || amount <= 0) {
+                    repaymentAmount.style.borderColor = 'var(--danger-color)';
+                    showNotification('Amount must be a positive number', 'error');
+                    isValid = false;
+                }
             }
             
             // For mobile payments, validate transaction ID
-            if (document.getElementById('paymentMethod').value === 'mobile') {
-                const transactionId = document.getElementById('mobileTransactionId').value;
-                if (!transactionId.trim()) {
-                    document.getElementById('mobileTransactionId').style.borderColor = 'var(--danger-color)';
+            const paymentMethod = document.getElementById('paymentMethod');
+            if (paymentMethod && paymentMethod.value === 'mobile') {
+                const transactionId = document.getElementById('mobileTransactionId');
+                if (transactionId && !transactionId.value.trim()) {
+                    transactionId.style.borderColor = 'var(--danger-color)';
                     showNotification('Transaction ID is required for mobile payments', 'error');
                     isValid = false;
                 }
@@ -4895,6 +4337,8 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
         // Initialize calculator form
         function initCalculatorForm() {
             const calculatorForm = document.getElementById('calculatorForm');
+            if (!calculatorForm) return;
+            
             const loanAmount = document.getElementById('calcLoanAmount');
             const interestRate = document.getElementById('calcInterestRate');
             const totalAmount = document.getElementById('calcTotalAmount');
@@ -4910,7 +4354,7 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
                 // Simple interest calculation: Total = Principal + (Principal * Rate)
                 const total = amount + (amount * (rate / 100));
                 
-                totalAmount.textContent = formatCurrency(total, currentCurrency);
+                if (totalAmount) totalAmount.textContent = formatCurrency(total, currentCurrency);
                 
                 // Calculate per payment amount
                 const term = parseInt(document.getElementById('calcTerm').value) || 0;
@@ -4927,26 +4371,35 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
                     payments = Math.ceil(term / 30);
                 }
                 
-                numPayments.textContent = payments;
-                perPayment.textContent = formatCurrency(total / payments, currentCurrency);
+                if (numPayments) numPayments.textContent = payments;
+                if (perPayment) perPayment.textContent = formatCurrency(total / payments, currentCurrency);
                 
                 // Effective rate is same as simple rate in this calculation
-                effectiveRate.textContent = `${rate.toFixed(2)}%`;
+                if (effectiveRate) effectiveRate.textContent = `${rate.toFixed(2)}%`;
                 
                 // Generate schedule
                 generateCalculatorSchedule(amount, total, payments, frequency, document.getElementById('calcStartDate').value);
             };
             
             // Add event listeners
-            loanAmount.addEventListener('input', calculateTotal);
-            interestRate.addEventListener('input', calculateTotal);
-            document.getElementById('calcTerm').addEventListener('input', calculateTotal);
-            document.getElementById('calcTermUnit').addEventListener('change', calculateTotal);
-            document.getElementById('calcPaymentFrequency').addEventListener('change', calculateTotal);
-            document.getElementById('calcStartDate').addEventListener('change', calculateTotal);
+            if (loanAmount) loanAmount.addEventListener('input', calculateTotal);
+            if (interestRate) interestRate.addEventListener('input', calculateTotal);
+            
+            const calcTerm = document.getElementById('calcTerm');
+            const calcTermUnit = document.getElementById('calcTermUnit');
+            const calcPaymentFrequency = document.getElementById('calcPaymentFrequency');
+            const calcStartDate = document.getElementById('calcStartDate');
+            
+            if (calcTerm) calcTerm.addEventListener('input', calculateTotal);
+            if (calcTermUnit) calcTermUnit.addEventListener('change', calculateTotal);
+            if (calcPaymentFrequency) calcPaymentFrequency.addEventListener('change', calculateTotal);
+            if (calcStartDate) calcStartDate.addEventListener('change', calculateTotal);
             
             // Calculate button
-            document.getElementById('calculateLoanBtn').addEventListener('click', calculateTotal);
+            const calculateLoanBtn = document.getElementById('calculateLoanBtn');
+            if (calculateLoanBtn) {
+                calculateLoanBtn.addEventListener('click', calculateTotal);
+            }
             
             // Initial calculation
             calculateTotal();
@@ -4955,6 +4408,8 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
         // Generate calculator schedule
         function generateCalculatorSchedule(principal, total, payments, frequency, startDate) {
             const scheduleBody = document.getElementById('calcSchedule');
+            if (!scheduleBody) return;
+            
             scheduleBody.innerHTML = '';
             
             if (payments <= 0) {
@@ -5004,6 +4459,7 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
         // Initialize user management
         function initUserManagement() {
             const addUserBtn = document.getElementById('addUserBtn');
+            if (!addUserBtn) return;
             
             addUserBtn.addEventListener('click', () => {
                 // Check user permissions
@@ -5029,33 +4485,41 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
             const uploadDocBtn = document.getElementById('uploadDocBtn');
             const botComplianceBtn = document.getElementById('botComplianceBtn');
             
-            kycVerifyBtn.addEventListener('click', () => {
-                if (currentBorrowerId) {
-                    verifyKYC(currentBorrowerId);
-                } else {
-                    showNotification('Please select a borrower first', 'warning');
-                }
-            });
+            if (kycVerifyBtn) {
+                kycVerifyBtn.addEventListener('click', () => {
+                    if (currentBorrowerId) {
+                        verifyKYC(currentBorrowerId);
+                    } else {
+                        showNotification('Please select a borrower first', 'warning');
+                    }
+                });
+            }
             
-            amlCheckBtn.addEventListener('click', () => {
-                if (currentBorrowerId) {
-                    checkAML(currentBorrowerId);
-                } else {
-                    showNotification('Please select a borrower first', 'warning');
-                }
-            });
+            if (amlCheckBtn) {
+                amlCheckBtn.addEventListener('click', () => {
+                    if (currentBorrowerId) {
+                        checkAML(currentBorrowerId);
+                    } else {
+                        showNotification('Please select a borrower first', 'warning');
+                    }
+                });
+            }
             
-            uploadDocBtn.addEventListener('click', () => {
-                uploadComplianceDocument();
-            });
+            if (uploadDocBtn) {
+                uploadDocBtn.addEventListener('click', () => {
+                    uploadComplianceDocument();
+                });
+            }
             
-            botComplianceBtn.addEventListener('click', () => {
-                if (currentBorrowerId) {
-                    checkBoTCompliance(currentBorrowerId);
-                } else {
-                    showNotification('Please select a borrower first', 'warning');
-                }
-            });
+            if (botComplianceBtn) {
+                botComplianceBtn.addEventListener('click', () => {
+                    if (currentBorrowerId) {
+                        checkBoTCompliance(currentBorrowerId);
+                    } else {
+                        showNotification('Please select a borrower first', 'warning');
+                    }
+                });
+            }
         }
 
         // Verify KYC
@@ -5069,8 +4533,11 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
             borrower.kycVerified = true;
             saveData();
             
-            document.getElementById('kycStatus').textContent = 'Verified';
-            document.getElementById('kycStatus').style.color = 'var(--success-color)';
+            const kycStatus = document.getElementById('kycStatus');
+            if (kycStatus) {
+                kycStatus.textContent = 'Verified';
+                kycStatus.style.color = 'var(--success-color)';
+            }
             
             showNotification('KYC verification completed successfully', 'success');
         }
@@ -5086,8 +4553,11 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
             borrower.amlChecked = true;
             saveData();
             
-            document.getElementById('amlStatus').textContent = 'Checked';
-            document.getElementById('amlStatus').style.color = 'var(--success-color)';
+            const amlStatus = document.getElementById('amlStatus');
+            if (amlStatus) {
+                amlStatus.textContent = 'Checked';
+                amlStatus.style.color = 'var(--success-color)';
+            }
             
             showNotification('AML check completed successfully', 'success');
         }
@@ -5103,8 +4573,11 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
             borrower.boTCompliance = true;
             saveData();
             
-            document.getElementById('botStatus').textContent = 'Compliant';
-            document.getElementById('botStatus').style.color = 'var(--success-color)';
+            const botStatus = document.getElementById('botStatus');
+            if (botStatus) {
+                botStatus.textContent = 'Compliant';
+                botStatus.style.color = 'var(--success-color)';
+            }
             
             showNotification('BoT compliance check completed successfully', 'success');
         }
@@ -5149,6 +4622,8 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
         // Load compliance documents
         function loadComplianceDocuments() {
             const documentsList = document.getElementById('documentsList');
+            if (!documentsList) return;
+            
             documentsList.innerHTML = '';
             
             const documents = JSON.parse(localStorage.getItem('complianceDocuments')) || [];
@@ -5235,14 +4710,24 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
             if (currentBorrowerId) {
                 const borrower = borrowers.find(b => b.id === currentBorrowerId);
                 if (borrower) {
-                    document.getElementById('kycStatus').textContent = borrower.kycVerified ? 'Verified' : 'Not verified';
-                    document.getElementById('kycStatus').style.color = borrower.kycVerified ? 'var(--success-color)' : 'var(--danger-color)';
+                    const kycStatus = document.getElementById('kycStatus');
+                    const amlStatus = document.getElementById('amlStatus');
+                    const botStatus = document.getElementById('botStatus');
                     
-                    document.getElementById('amlStatus').textContent = borrower.amlChecked ? 'Checked' : 'Not checked';
-                    document.getElementById('amlStatus').style.color = borrower.amlChecked ? 'var(--success-color)' : 'var(--danger-color)';
+                    if (kycStatus) {
+                        kycStatus.textContent = borrower.kycVerified ? 'Verified' : 'Not verified';
+                        kycStatus.style.color = borrower.kycVerified ? 'var(--success-color)' : 'var(--danger-color)';
+                    }
                     
-                    document.getElementById('botStatus').textContent = borrower.boTCompliance ? 'Compliant' : 'Not checked';
-                    document.getElementById('botStatus').style.color = borrower.boTCompliance ? 'var(--success-color)' : 'var(--danger-color)';
+                    if (amlStatus) {
+                        amlStatus.textContent = borrower.amlChecked ? 'Checked' : 'Not checked';
+                        amlStatus.style.color = borrower.amlChecked ? 'var(--success-color)' : 'var(--danger-color)';
+                    }
+                    
+                    if (botStatus) {
+                        botStatus.textContent = borrower.boTCompliance ? 'Compliant' : 'Not checked';
+                        botStatus.style.color = borrower.boTCompliance ? 'var(--success-color)' : 'var(--danger-color)';
+                    }
                 }
             }
             
@@ -5269,14 +4754,23 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
             const activeRegions = [...new Set(borrowers.map(b => b.region))].length;
             
             // Update dashboard stats
-            document.getElementById('dashboardLoanDisbursed').textContent = formatCurrency(totalLoanDisbursed, currentCurrency);
-            document.getElementById('dashboardMoneyReceived').textContent = formatCurrency(totalMoneyReceived, currentCurrency);
-            document.getElementById('dashboardLoanPending').textContent = formatCurrency(totalLoanPending, currentCurrency);
-            document.getElementById('dashboardActiveBorrowers').textContent = activeBorrowers;
-            document.getElementById('dashboardOverdueLoans').textContent = overdueLoans;
-            document.getElementById('dashboardPendingReminders').textContent = pendingReminders;
-            document.getElementById('dashboardTotalProfit').textContent = formatCurrency(totalInterestIncome, currentCurrency);
-            document.getElementById('dashboardActiveRegions').textContent = activeRegions;
+            const dashboardLoanDisbursed = document.getElementById('dashboardLoanDisbursed');
+            const dashboardMoneyReceived = document.getElementById('dashboardMoneyReceived');
+            const dashboardLoanPending = document.getElementById('dashboardLoanPending');
+            const dashboardActiveBorrowers = document.getElementById('dashboardActiveBorrowers');
+            const dashboardOverdueLoans = document.getElementById('dashboardOverdueLoans');
+            const dashboardPendingReminders = document.getElementById('dashboardPendingReminders');
+            const dashboardTotalProfit = document.getElementById('dashboardTotalProfit');
+            const dashboardActiveRegions = document.getElementById('dashboardActiveRegions');
+            
+            if (dashboardLoanDisbursed) dashboardLoanDisbursed.textContent = formatCurrency(totalLoanDisbursed, currentCurrency);
+            if (dashboardMoneyReceived) dashboardMoneyReceived.textContent = formatCurrency(totalMoneyReceived, currentCurrency);
+            if (dashboardLoanPending) dashboardLoanPending.textContent = formatCurrency(totalLoanPending, currentCurrency);
+            if (dashboardActiveBorrowers) dashboardActiveBorrowers.textContent = activeBorrowers;
+            if (dashboardOverdueLoans) dashboardOverdueLoans.textContent = overdueLoans;
+            if (dashboardPendingReminders) dashboardPendingReminders.textContent = pendingReminders;
+            if (dashboardTotalProfit) dashboardTotalProfit.textContent = formatCurrency(totalInterestIncome, currentCurrency);
+            if (dashboardActiveRegions) dashboardActiveRegions.textContent = activeRegions;
             
             // Load recent repayments
             loadRecentRepayments();
@@ -5287,11 +4781,13 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
 
         // Load recent repayments
         function loadRecentRepayments() {
-            const recentRepaymentsBody = document.getElementById('recentRepayments');
-            recentRepaymentsBody.innerHTML = '';
+            const recentRepayments = document.getElementById('recentRepayments');
+            if (!recentRepayments) return;
+            
+            recentRepayments.innerHTML = '';
             
             if (repayments.length === 0) {
-                recentRepaymentsBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No recent repayments</td></tr>';
+                recentRepayments.innerHTML = '<tr><td colspan="5" style="text-align: center;">No recent repayments</td></tr>';
                 return;
             }
             
@@ -5313,7 +4809,7 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
                     <td>${formatCurrency(repayment.amount, repayment.currency)}</td>
                     <td><span class="status-indicator status-active"></span> Recorded</td>
                 `;
-                recentRepaymentsBody.appendChild(row);
+                recentRepayments.appendChild(row);
             });
         }
 
@@ -5324,6 +4820,8 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
             
             // This would be implemented to show a detailed view of all repayments
             const repaymentsBody = document.getElementById('recentRepayments');
+            if (!repaymentsBody) return;
+            
             repaymentsBody.innerHTML = '';
             
             if (repayments.length === 0) {
@@ -5352,9 +4850,11 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
 
         // Initialize charts
         function initCharts() {
-            const loanPerformanceCtx = document.getElementById('loanPerformanceChart').getContext('2d');
-            const portfolioDistributionCtx = document.getElementById('portfolioDistributionChart').getContext('2d');
-            const profitCtx = document.getElementById('profitChart').getContext('2d');
+            const loanPerformanceCtx = document.getElementById('loanPerformanceChart');
+            const portfolioDistributionCtx = document.getElementById('portfolioDistributionChart');
+            const profitCtx = document.getElementById('profitChart');
+            
+            if (!loanPerformanceCtx || !portfolioDistributionCtx || !profitCtx) return;
             
             // Destroy existing charts if they exist
             if (loanPerformanceChart) {
@@ -5367,22 +4867,43 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
                 profitChart.destroy();
             }
             
-            // Group loans by month
+            // Get data for the last 3 months
+            const currentDate = new Date();
+            const threeMonthsAgo = new Date();
+            threeMonthsAgo.setMonth(currentDate.getMonth() - 3);
+            
+            // Filter borrowers from the last 3 months
+            const recentBorrowers = borrowers.filter(borrower => {
+                const borrowerDate = new Date(borrower.createdAt);
+                return borrowerDate >= threeMonthsAgo;
+            });
+            
+            // Group loans by month for the last 3 months
             const loansByMonth = {};
-            borrowers.forEach(borrower => {
+            const months = [];
+            
+            // Initialize the last 3 months with zero values
+            for (let i = 2; i >= 0; i--) {
+                const date = new Date();
+                date.setMonth(date.getMonth() - i);
+                const monthYear = `${date.getFullYear()}-${date.getMonth() + 1}`;
+                const monthName = date.toLocaleString('default', { month: 'short' }) + ' ' + date.getFullYear();
+                months.push(monthName);
+                loansByMonth[monthYear] = 0;
+            }
+            
+            // Add actual loan amounts
+            recentBorrowers.forEach(borrower => {
                 const date = new Date(borrower.createdAt);
                 const monthYear = `${date.getFullYear()}-${date.getMonth() + 1}`;
                 
-                if (!loansByMonth[monthYear]) {
-                    loansByMonth[monthYear] = 0;
+                if (loansByMonth.hasOwnProperty(monthYear)) {
+                    loansByMonth[monthYear] += borrower.loanAmount;
                 }
-                
-                loansByMonth[monthYear] += borrower.loanAmount;
             });
             
             // Prepare data for loan performance chart
-            const months = Object.keys(loansByMonth).sort();
-            const loanAmounts = months.map(month => loansByMonth[month]);
+            const loanAmounts = Object.values(loansByMonth);
             
             // Loan performance chart (line chart)
             loanPerformanceChart = new Chart(loanPerformanceCtx, {
@@ -5483,29 +5004,36 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
                 }
             });
             
-            // Prepare data for profit chart (monthly profit)
+            // Prepare data for profit chart (monthly profit for last 3 months)
             const profitByMonth = {};
-            borrowers.forEach(borrower => {
+            
+            // Initialize the last 3 months with zero values
+            for (let i = 2; i >= 0; i--) {
+                const date = new Date();
+                date.setMonth(date.getMonth() - i);
+                const monthYear = `${date.getFullYear()}-${date.getMonth() + 1}`;
+                profitByMonth[monthYear] = 0;
+            }
+            
+            // Add the interest as profit for recent borrowers
+            recentBorrowers.forEach(borrower => {
                 const date = new Date(borrower.createdAt);
                 const monthYear = `${date.getFullYear()}-${date.getMonth() + 1}`;
                 
-                if (!profitByMonth[monthYear]) {
-                    profitByMonth[monthYear] = 0;
+                if (profitByMonth.hasOwnProperty(monthYear)) {
+                    // Add the interest as profit
+                    profitByMonth[monthYear] += (borrower.totalAmount - borrower.loanAmount);
                 }
-                
-                // Add the interest as profit
-                profitByMonth[monthYear] += (borrower.totalAmount - borrower.loanAmount);
             });
             
             // Prepare data for profit chart
-            const profitMonths = Object.keys(profitByMonth).sort();
-            const profitAmounts = profitMonths.map(month => profitByMonth[month]);
+            const profitAmounts = Object.values(profitByMonth);
             
             // Profit chart (bar chart)
             profitChart = new Chart(profitCtx, {
                 type: 'bar',
                 data: {
-                    labels: profitMonths,
+                    labels: months,
                     datasets: [{
                         label: 'Monthly Profit',
                         data: profitAmounts,
@@ -5545,6 +5073,8 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
         // Load borrowers
         function loadBorrowers() {
             const borrowersBody = document.getElementById('borrowersList');
+            if (!borrowersBody) return;
+            
             borrowersBody.innerHTML = '';
             
             if (borrowers.length === 0) {
@@ -5599,42 +5129,55 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
             currentBorrowerId = borrowerId;
             
             // Update borrower details
-            document.getElementById('borrowerName').textContent = borrower.fullName;
-            document.getElementById('borrowerId').textContent = `ID: ${borrower.id}`;
-            document.getElementById('detailLoanAmount').textContent = formatCurrency(borrower.totalAmount, borrower.loanCurrency);
-            document.getElementById('detailBalance').textContent = formatCurrency(borrower.balance, borrower.loanCurrency);
-            document.getElementById('detailStatus').textContent = borrower.status.charAt(0).toUpperCase() + borrower.status.slice(1);
+            const borrowerName = document.getElementById('borrowerName');
+            const borrowerIdElement = document.getElementById('borrowerId');
+            const detailLoanAmount = document.getElementById('detailLoanAmount');
+            const detailBalance = document.getElementById('detailBalance');
+            const detailStatus = document.getElementById('detailStatus');
+            
+            if (borrowerName) borrowerName.textContent = borrower.fullName;
+            if (borrowerIdElement) borrowerIdElement.textContent = `ID: ${borrower.id}`;
+            if (detailLoanAmount) detailLoanAmount.textContent = formatCurrency(borrower.totalAmount, borrower.loanCurrency);
+            if (detailBalance) detailBalance.textContent = formatCurrency(borrower.balance, borrower.loanCurrency);
+            if (detailStatus) detailStatus.textContent = borrower.status.charAt(0).toUpperCase() + borrower.status.slice(1);
             
             // Update personal info tab
-            document.getElementById('detailPhone').textContent = borrower.phoneNumber;
-            document.getElementById('detailEmail').textContent = borrower.email || 'N/A';
-            document.getElementById('detailRegion').textContent = borrower.region;
-            document.getElementById('detailAddress').textContent = borrower.address;
-            document.getElementById('detailBusiness').innerHTML = `
+            const detailPhone = document.getElementById('detailPhone');
+            const detailEmail = document.getElementById('detailEmail');
+            const detailRegion = document.getElementById('detailRegion');
+            const detailAddress = document.getElementById('detailAddress');
+            const detailBusiness = document.getElementById('detailBusiness');
+            const detailGuarantor = document.getElementById('detailGuarantor');
+            
+            if (detailPhone) detailPhone.textContent = borrower.phoneNumber;
+            if (detailEmail) detailEmail.textContent = borrower.email || 'N/A';
+            if (detailRegion) detailRegion.textContent = borrower.region;
+            if (detailAddress) detailAddress.textContent = borrower.address;
+            if (detailBusiness) detailBusiness.innerHTML = `
                 <strong>Business:</strong> ${borrower.businessInfo || 'N/A'}<br>
                 <strong>Loan Purpose:</strong> ${borrower.loanPurpose}
             `;
-            document.getElementById('detailGuarantor').innerHTML = `
+            if (detailGuarantor) detailGuarantor.innerHTML = `
                 <strong>Name:</strong> ${borrower.guarantorName || 'N/A'}<br>
                 <strong>Phone:</strong> ${borrower.guarantorPhone || 'N/A'}
             `;
             
             // Add call and SMS buttons for phone number
-            const phoneElement = document.getElementById('detailPhone');
-            phoneElement.innerHTML = `
-                ${borrower.phoneNumber}
-                <button class="action-button call-button" onclick="callBorrower('${borrower.phoneNumber}')" title="${translations[currentLanguage].call}">
-                    <i class="fas fa-phone"></i>
-                </button>
-                <button class="action-button sms-button" onclick="sendSMS('${borrower.id}')" title="${translations[currentLanguage].sendSMS}">
-                    <i class="fas fa-sms"></i>
-                </button>
-            `;
+            if (detailPhone) {
+                detailPhone.innerHTML = `
+                    ${borrower.phoneNumber}
+                    <button class="action-button call-button" onclick="callBorrower('${borrower.phoneNumber}')" title="${translations[currentLanguage].call}">
+                        <i class="fas fa-phone"></i>
+                    </button>
+                    <button class="action-button sms-button" onclick="sendSMS('${borrower.id}')" title="${translations[currentLanguage].sendSMS}">
+                        <i class="fas fa-sms"></i>
+                    </button>
+                `;
+            }
             
             // Add call and SMS buttons for guarantor phone number
-            const guarantorElement = document.getElementById('detailGuarantor');
-            if (borrower.guarantorPhone) {
-                guarantorElement.innerHTML = `
+            if (detailGuarantor && borrower.guarantorPhone) {
+                detailGuarantor.innerHTML = `
                     <strong>Name:</strong> ${borrower.guarantorName || 'N/A'}<br>
                     <strong>Phone:</strong> ${borrower.guarantorPhone}
                     <button class="action-button call-button" onclick="callBorrower('${borrower.guarantorPhone}')" title="${translations[currentLanguage].call}">
@@ -5647,39 +5190,57 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
             }
             
             // Update loan info tab
-            document.getElementById('detailLoanAmount2').textContent = formatCurrency(borrower.totalAmount, borrower.loanCurrency);
-            document.getElementById('detailInterestRate').textContent = `${borrower.interestRate}%`;
-            document.getElementById('detailTotalAmount').textContent = formatCurrency(borrower.totalAmount, borrower.loanCurrency);
-            document.getElementById('detailAmountPaid').textContent = formatCurrency(borrower.totalAmount - borrower.balance, borrower.loanCurrency);
-            document.getElementById('detailBalance2').textContent = formatCurrency(borrower.balance, borrower.loanCurrency);
-            document.getElementById('detailPaymentFrequency').textContent = borrower.paymentFrequency.charAt(0).toUpperCase() + borrower.paymentFrequency.slice(1);
-            document.getElementById('detailStartDate').textContent = new Date(borrower.startDate).toLocaleDateString();
+            const detailLoanAmount2 = document.getElementById('detailLoanAmount2');
+            const detailInterestRate = document.getElementById('detailInterestRate');
+            const detailTotalAmount = document.getElementById('detailTotalAmount');
+            const detailAmountPaid = document.getElementById('detailAmountPaid');
+            const detailBalance2 = document.getElementById('detailBalance2');
+            const detailPaymentFrequency = document.getElementById('detailPaymentFrequency');
+            const detailStartDate = document.getElementById('detailStartDate');
+            const detailEndDate = document.getElementById('detailEndDate');
+            const detailDaysRemaining = document.getElementById('detailDaysRemaining');
+            const detailCollateral = document.getElementById('detailCollateral');
+            
+            if (detailLoanAmount2) detailLoanAmount2.textContent = formatCurrency(borrower.totalAmount, borrower.loanCurrency);
+            if (detailInterestRate) detailInterestRate.textContent = `${borrower.interestRate}%`;
+            if (detailTotalAmount) detailTotalAmount.textContent = formatCurrency(borrower.totalAmount, borrower.loanCurrency);
+            if (detailAmountPaid) detailAmountPaid.textContent = formatCurrency(borrower.totalAmount - borrower.balance, borrower.loanCurrency);
+            if (detailBalance2) detailBalance2.textContent = formatCurrency(borrower.balance, borrower.loanCurrency);
+            if (detailPaymentFrequency) detailPaymentFrequency.textContent = borrower.paymentFrequency.charAt(0).toUpperCase() + borrower.paymentFrequency.slice(1);
+            if (detailStartDate) detailStartDate.textContent = new Date(borrower.startDate).toLocaleDateString();
             
             const endDate = new Date(borrower.startDate);
             endDate.setDate(endDate.getDate() + borrower.loanTerm);
-            document.getElementById('detailEndDate').textContent = endDate.toLocaleDateString();
+            if (detailEndDate) detailEndDate.textContent = endDate.toLocaleDateString();
             
             const daysRemaining = Math.max(0, Math.ceil((endDate - new Date()) / (1000 * 60 * 60 * 24)));
-            document.getElementById('detailDaysRemaining').textContent = daysRemaining;
+            if (detailDaysRemaining) detailDaysRemaining.textContent = daysRemaining;
             
-            document.getElementById('detailCollateral').textContent = borrower.collateralInfo || 'N/A';
+            if (detailCollateral) detailCollateral.textContent = borrower.collateralInfo || 'N/A';
             
             // Load payment schedule
             loadPaymentSchedule(borrowerId);
             
             // Load documents tab
-            document.getElementById('detailIdType').textContent = borrower.idType;
-            document.getElementById('detailIdNumber').textContent = borrower.idNumber;
-            document.getElementById('detailAgreementSigned').textContent = borrower.termsAccepted ? 'Yes' : 'No';
-            document.getElementById('detailAgreementDate').textContent = new Date(borrower.createdAt).toLocaleDateString();
-            document.getElementById('detailCollateralDocs').textContent = borrower.collateralInfo ? 'Available' : 'None';
+            const detailIdType = document.getElementById('detailIdType');
+            const detailIdNumber = document.getElementById('detailIdNumber');
+            const detailAgreementSigned = document.getElementById('detailAgreementSigned');
+            const detailAgreementDate = document.getElementById('detailAgreementDate');
+            const detailCollateralDocs = document.getElementById('detailCollateralDocs');
+            
+            if (detailIdType) detailIdType.textContent = borrower.idType;
+            if (detailIdNumber) detailIdNumber.textContent = borrower.idNumber;
+            if (detailAgreementSigned) detailAgreementSigned.textContent = borrower.termsAccepted ? 'Yes' : 'No';
+            if (detailAgreementDate) detailAgreementDate.textContent = new Date(borrower.createdAt).toLocaleDateString();
+            if (detailCollateralDocs) detailCollateralDocs.textContent = borrower.collateralInfo ? 'Available' : 'None';
             
             // Show borrower details section
-            document.getElementById('borrowerDetailsContainer').style.display = 'block';
+            const borrowerDetailsContainer = document.getElementById('borrowerDetailsContainer');
+            if (borrowerDetailsContainer) borrowerDetailsContainer.style.display = 'block';
             showSection('borrower-details');
             
             // Load compliance data if we're in the compliance section
-            if (document.getElementById('compliance').classList.contains('active')) {
+            if (document.getElementById('compliance') && document.getElementById('compliance').classList.contains('active')) {
                 loadComplianceData();
             }
         }
@@ -5687,6 +5248,8 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
         // Load payment schedule
         function loadPaymentSchedule(borrowerId) {
             const scheduleBody = document.getElementById('paymentSchedule');
+            if (!scheduleBody) return;
+            
             scheduleBody.innerHTML = '';
             
             const borrowerSchedules = paymentSchedules
@@ -5751,6 +5314,8 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
         // Load borrower payments
         function loadBorrowerPayments(borrowerId) {
             const paymentsBody = document.getElementById('borrowerPayments');
+            if (!paymentsBody) return;
+            
             paymentsBody.innerHTML = '';
             
             const borrowerPayments = repayments
@@ -5798,21 +5363,30 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
             }
             
             // Update receipt content
-            document.getElementById('receiptNumber').textContent = payment.id.split('-')[1].toUpperCase();
-            document.getElementById('receiptDate').textContent = new Date(payment.date).toLocaleDateString();
-            document.getElementById('receiptBorrower').textContent = borrower.fullName;
-            document.getElementById('receiptAmount').textContent = formatCurrency(payment.amount, payment.currency);
-            document.getElementById('receiptMethod').textContent = payment.paymentMethod.charAt(0).toUpperCase() + payment.paymentMethod.slice(1);
-            document.getElementById('receiptReference').textContent = payment.transactionReference || 'N/A';
+            const receiptNumber = document.getElementById('receiptNumber');
+            const receiptDate = document.getElementById('receiptDate');
+            const receiptBorrower = document.getElementById('receiptBorrower');
+            const receiptAmount = document.getElementById('receiptAmount');
+            const receiptMethod = document.getElementById('receiptMethod');
+            const receiptReference = document.getElementById('receiptReference');
+            
+            if (receiptNumber) receiptNumber.textContent = payment.id.split('-')[1].toUpperCase();
+            if (receiptDate) receiptDate.textContent = new Date(payment.date).toLocaleDateString();
+            if (receiptBorrower) receiptBorrower.textContent = borrower.fullName;
+            if (receiptAmount) receiptAmount.textContent = formatCurrency(payment.amount, payment.currency);
+            if (receiptMethod) receiptMethod.textContent = payment.paymentMethod.charAt(0).toUpperCase() + payment.paymentMethod.slice(1);
+            if (receiptReference) receiptReference.textContent = payment.transactionReference || 'N/A';
             
             // Add remaining balance to receipt
             const receiptContent = document.getElementById('receiptContent');
-            const remainBalanceElement = document.createElement('p');
-            remainBalanceElement.innerHTML = `<strong>${translations[currentLanguage].remainBalance}:</strong> ${formatCurrency(borrower.balance, borrower.loanCurrency)}`;
-            
-            // Insert before the footer section
-            const footerDiv = receiptContent.querySelector('div:last-child');
-            receiptContent.insertBefore(remainBalanceElement, footerDiv);
+            if (receiptContent) {
+                const remainBalanceElement = document.createElement('p');
+                remainBalanceElement.innerHTML = `<strong>${translations[currentLanguage].remainBalance}:</strong> ${formatCurrency(borrower.balance, borrower.loanCurrency)}`;
+                
+                // Insert before the footer section
+                const footerDiv = receiptContent.querySelector('div:last-child');
+                receiptContent.insertBefore(remainBalanceElement, footerDiv);
+            }
             
             // Show receipt modal
             document.getElementById('receiptModal').style.display = 'flex';
@@ -5879,7 +5453,7 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
             showNotification('Receipt downloaded successfully', 'success');
         }
 
-        // Edit borrower
+        // Edit borrower - FIXED VERSION
         function editBorrower(borrowerId) {
             // Check user permissions
             if (!['Administrator', 'Manager', 'Loan Officer'].includes(currentUser.role)) {
@@ -5944,9 +5518,9 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
             // Handle group members
             const groupMembersContainer = document.getElementById('groupMembersContainer');
             const groupMembersList = document.getElementById('groupMembersList');
-            groupMembersList.innerHTML = '';
+            if (groupMembersList) groupMembersList.innerHTML = '';
             
-            if (borrower.isGroupLoan && borrower.groupMembers.length > 0) {
+            if (borrower.isGroupLoan && borrower.groupMembers.length > 0 && groupMembersContainer && groupMembersList) {
                 groupMembersContainer.style.display = 'block';
                 
                 borrower.groupMembers.forEach(member => {
@@ -5974,106 +5548,152 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
                     `;
                     groupMembersList.insertAdjacentHTML('beforeend', memberHtml);
                 });
-            } else {
+            } else if (groupMembersContainer) {
                 groupMembersContainer.style.display = 'none';
             }
             
             // Show the modal
             document.getElementById('newBorrowerModal').style.display = 'flex';
             
-            // Change the form submit to update instead of create
-            const borrowerForm = document.getElementById('borrowerForm');
-            const originalSubmit = borrowerForm.onsubmit;
+            // Remove any existing update button and add a new one
+            const existingUpdateBtn = document.getElementById('updateBorrowerBtn');
+            if (existingUpdateBtn) {
+                existingUpdateBtn.remove();
+            }
             
-            borrowerForm.onsubmit = function(e) {
-                e.preventDefault();
-                
-                if (!validateBorrowerForm()) {
-                    return;
-                }
-                
-                // Update borrower data
-                borrower.fullName = document.getElementById('fullName').value;
-                borrower.phoneNumber = document.getElementById('phoneNumber').value;
-                borrower.idType = document.getElementById('idType').value;
-                borrower.idNumber = document.getElementById('idNumber').value;
-                borrower.region = document.getElementById('region').value;
-                borrower.district = document.getElementById('district').value;
-                borrower.ward = document.getElementById('ward').value;
-                borrower.address = document.getElementById('address').value;
-                borrower.email = document.getElementById('email').value || null;
-                borrower.businessInfo = document.getElementById('businessInfo').value || null;
-                borrower.loanPurpose = document.getElementById('loanPurpose').value;
-                borrower.loanAmount = parseFloat(document.getElementById('loanAmount').value);
-                borrower.loanCurrency = document.getElementById('loanCurrency').value;
-                borrower.interestRate = parseFloat(document.getElementById('interestRate').value);
-                borrower.totalAmount = parseFloat(document.getElementById('totalAmount').value);
-                borrower.loanTerm = parseInt(document.getElementById('loanTerm').value);
-                borrower.startDate = document.getElementById('startDate').value;
-                borrower.paymentFrequency = document.getElementById('paymentFrequency').value;
-                borrower.collateralInfo = document.getElementById('collateralInfo').value || null;
-                borrower.guarantorName = document.getElementById('guarantorName').value || null;
-                borrower.guarantorPhone = document.getElementById('guarantorPhone').value || null;
-                borrower.kycVerified = document.getElementById('kycVerified').checked;
-                borrower.amlChecked = document.getElementById('amlChecked').checked;
-                borrower.termsAccepted = document.getElementById('termsAccepted').checked;
-                borrower.boTCompliance = document.getElementById('boTCompliance').checked;
-                borrower.isGroupLoan = document.getElementById('isGroupLoan').checked;
-                
-                // Update group members
-                borrower.groupMembers = [];
-                if (borrower.isGroupLoan) {
-                    const members = document.querySelectorAll('.group-member');
-                    members.forEach(member => {
-                        const inputs = member.querySelectorAll('input');
-                        borrower.groupMembers.push({
-                            name: inputs[0].value,
-                            phone: inputs[1].value,
-                            idNumber: inputs[2].value
-                        });
-                    });
-                }
-                
-                // Recalculate balance if needed
-                const totalPaid = repayments
-                    .filter(r => r.borrowerId === borrower.id)
-                    .reduce((sum, r) => sum + r.amount, 0);
-                borrower.balance = borrower.totalAmount - totalPaid;
-                
-                // Update status if balance is zero
-                if (borrower.balance <= 0) {
-                    borrower.status = 'completed';
-                    borrower.balance = 0;
-                }
-                
-                // Save data
-                saveData();
-                
-                // Show success message
-                showNotification('Borrower updated successfully!', 'success');
-                
-                // Reset form
-                borrowerForm.reset();
-                document.getElementById('photoPlaceholder').style.backgroundImage = '';
-                document.getElementById('photoPlaceholder').innerHTML = '<i class="fas fa-user"></i>';
-                document.getElementById('groupMembersList').innerHTML = '';
-                document.getElementById('groupMembersContainer').style.display = 'none';
-                
-                // Close modal
-                document.getElementById('newBorrowerModal').style.display = 'none';
-                
-                // Update dashboard and borrowers list
-                loadDashboardData();
-                loadBorrowers();
-                
-                // If we're currently viewing this borrower, refresh the view
-                if (currentBorrowerId === borrower.id) {
-                    viewBorrowerDetails(borrower.id);
-                }
-                
-                // Reset form submit handler to create new borrower
-                borrowerForm.onsubmit = originalSubmit;
+            const submitButton = document.querySelector('#borrowerForm button[type="submit"]');
+            const updateButton = document.createElement('button');
+            updateButton.type = 'button';
+            updateButton.id = 'updateBorrowerBtn';
+            updateButton.className = 'btn btn-success';
+            updateButton.innerHTML = '<i class="fas fa-save"></i> Update Info';
+            updateButton.onclick = function() {
+                updateBorrower(borrowerId);
             };
+            
+            submitButton.parentNode.appendChild(updateButton);
+            
+            // Hide the original submit button
+            submitButton.style.display = 'none';
+        }
+
+        // Update borrower - NEW FUNCTION
+        function updateBorrower(borrowerId) {
+            const borrower = borrowers.find(b => b.id === borrowerId);
+            if (!borrower) {
+                showNotification('Borrower not found', 'error');
+                return;
+            }
+            
+            if (!validateBorrowerForm()) {
+                return;
+            }
+            
+            // Update borrower data
+            borrower.fullName = document.getElementById('fullName').value;
+            borrower.phoneNumber = document.getElementById('phoneNumber').value;
+            borrower.idType = document.getElementById('idType').value;
+            borrower.idNumber = document.getElementById('idNumber').value;
+            borrower.region = document.getElementById('region').value;
+            borrower.district = document.getElementById('district').value;
+            borrower.ward = document.getElementById('ward').value;
+            borrower.address = document.getElementById('address').value;
+            borrower.email = document.getElementById('email').value || null;
+            borrower.businessInfo = document.getElementById('businessInfo').value || null;
+            borrower.loanPurpose = document.getElementById('loanPurpose').value;
+            borrower.loanAmount = parseFloat(document.getElementById('loanAmount').value);
+            borrower.loanCurrency = document.getElementById('loanCurrency').value;
+            borrower.interestRate = parseFloat(document.getElementById('interestRate').value);
+            
+            // Recalculate total amount
+            borrower.totalAmount = borrower.loanAmount + (borrower.loanAmount * (borrower.interestRate / 100));
+            
+            borrower.loanTerm = parseInt(document.getElementById('loanTerm').value);
+            borrower.startDate = document.getElementById('startDate').value;
+            borrower.paymentFrequency = document.getElementById('paymentFrequency').value;
+            borrower.collateralInfo = document.getElementById('collateralInfo').value || null;
+            borrower.guarantorName = document.getElementById('guarantorName').value || null;
+            borrower.guarantorPhone = document.getElementById('guarantorPhone').value || null;
+            borrower.kycVerified = document.getElementById('kycVerified').checked;
+            borrower.amlChecked = document.getElementById('amlChecked').checked;
+            borrower.termsAccepted = document.getElementById('termsAccepted').checked;
+            borrower.boTCompliance = document.getElementById('boTCompliance').checked;
+            borrower.isGroupLoan = document.getElementById('isGroupLoan').checked;
+            
+            // Update group members
+            borrower.groupMembers = [];
+            if (borrower.isGroupLoan) {
+                const members = document.querySelectorAll('.group-member');
+                members.forEach(member => {
+                    const inputs = member.querySelectorAll('input');
+                    borrower.groupMembers.push({
+                        name: inputs[0].value,
+                        phone: inputs[1].value,
+                        idNumber: inputs[2].value
+                    });
+                });
+            }
+            
+            // Recalculate balance if needed
+            const totalPaid = repayments
+                .filter(r => r.borrowerId === borrower.id)
+                .reduce((sum, r) => sum + r.amount, 0);
+            borrower.balance = borrower.totalAmount - totalPaid;
+            
+            // Update status if balance is zero
+            if (borrower.balance <= 0) {
+                borrower.status = 'completed';
+                borrower.balance = 0;
+            }
+            
+            // Save data
+            saveData();
+            
+            // Show success message
+            showNotification('Borrower updated successfully!', 'success');
+            
+            // Reset form and UI
+            const borrowerForm = document.getElementById('borrowerForm');
+            borrowerForm.reset();
+            
+            const photoPlaceholder = document.getElementById('photoPlaceholder');
+            if (photoPlaceholder) {
+                photoPlaceholder.style.backgroundImage = '';
+                photoPlaceholder.innerHTML = '<i class="fas fa-user"></i>';
+            }
+            
+            const groupMembersList = document.getElementById('groupMembersList');
+            if (groupMembersList) groupMembersList.innerHTML = '';
+            
+            const groupMembersContainer = document.getElementById('groupMembersContainer');
+            if (groupMembersContainer) groupMembersContainer.style.display = 'none';
+            
+            // Remove ID upload container if exists
+            const idUploadContainer = document.getElementById('idUploadContainer');
+            if (idUploadContainer) {
+                idUploadContainer.remove();
+            }
+            
+            // Close modal
+            document.getElementById('newBorrowerModal').style.display = 'none';
+            
+            // Show the original submit button again and remove update button
+            const submitButton = document.querySelector('#borrowerForm button[type="submit"]');
+            submitButton.style.display = 'block';
+            
+            const updateButton = document.getElementById('updateBorrowerBtn');
+            if (updateButton) {
+                updateButton.remove();
+            }
+            
+            // Update dashboard and borrowers list
+            loadDashboardData();
+            loadBorrowers();
+            
+            // If we're currently viewing this borrower, refresh the view
+            if (currentBorrowerId === borrower.id) {
+                viewBorrowerDetails(borrower.id);
+            }
         }
 
         // Delete borrower
@@ -6196,6 +5816,8 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
         // Update borrower dropdown
         function updateBorrowerDropdown() {
             const borrowerSelect = document.getElementById('borrowerSelect');
+            if (!borrowerSelect) return;
+            
             borrowerSelect.innerHTML = '<option value="">-- Select Borrower --</option>';
             
             borrowers.forEach(borrower => {
@@ -6217,21 +5839,30 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
             }
             
             // Update receipt content
-            document.getElementById('receiptNumber').textContent = repayment.id.split('-')[1].toUpperCase();
-            document.getElementById('receiptDate').textContent = new Date(repayment.date).toLocaleDateString();
-            document.getElementById('receiptBorrower').textContent = borrower.fullName;
-            document.getElementById('receiptAmount').textContent = formatCurrency(repayment.amount, repayment.currency);
-            document.getElementById('receiptMethod').textContent = repayment.paymentMethod.charAt(0).toUpperCase() + repayment.paymentMethod.slice(1);
-            document.getElementById('receiptReference').textContent = repayment.transactionReference || 'N/A';
+            const receiptNumber = document.getElementById('receiptNumber');
+            const receiptDate = document.getElementById('receiptDate');
+            const receiptBorrower = document.getElementById('receiptBorrower');
+            const receiptAmount = document.getElementById('receiptAmount');
+            const receiptMethod = document.getElementById('receiptMethod');
+            const receiptReference = document.getElementById('receiptReference');
+            
+            if (receiptNumber) receiptNumber.textContent = repayment.id.split('-')[1].toUpperCase();
+            if (receiptDate) receiptDate.textContent = new Date(repayment.date).toLocaleDateString();
+            if (receiptBorrower) receiptBorrower.textContent = borrower.fullName;
+            if (receiptAmount) receiptAmount.textContent = formatCurrency(repayment.amount, repayment.currency);
+            if (receiptMethod) receiptMethod.textContent = repayment.paymentMethod.charAt(0).toUpperCase() + repayment.paymentMethod.slice(1);
+            if (receiptReference) receiptReference.textContent = repayment.transactionReference || 'N/A';
             
             // Add remaining balance to receipt
             const receiptContent = document.getElementById('receiptContent');
-            const remainBalanceElement = document.createElement('p');
-            remainBalanceElement.innerHTML = `<strong>${translations[currentLanguage].remainBalance}:</strong> ${formatCurrency(borrower.balance, borrower.loanCurrency)}`;
-            
-            // Insert before the footer section
-            const footerDiv = receiptContent.querySelector('div:last-child');
-            receiptContent.insertBefore(remainBalanceElement, footerDiv);
+            if (receiptContent) {
+                const remainBalanceElement = document.createElement('p');
+                remainBalanceElement.innerHTML = `<strong>${translations[currentLanguage].remainBalance}:</strong> ${formatCurrency(borrower.balance, borrower.loanCurrency)}`;
+                
+                // Insert before the footer section
+                const footerDiv = receiptContent.querySelector('div:last-child');
+                receiptContent.insertBefore(remainBalanceElement, footerDiv);
+            }
             
             // Show receipt modal
             document.getElementById('receiptModal').style.display = 'flex';
@@ -6239,7 +5870,9 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
 
         // Print receipt
         function printReceipt() {
-            const receiptContent = document.getElementById('receiptContent').innerHTML;
+            const receiptContent = document.getElementById('receiptContent');
+            if (!receiptContent) return;
+            
             const printWindow = window.open('', '_blank');
             printWindow.document.write(`
                 <html>
@@ -6253,7 +5886,7 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
                     </style>
                 </head>
                 <body>
-                    ${receiptContent}
+                    ${receiptContent.innerHTML}
                 </body>
                 </html>
             `);
@@ -6350,7 +5983,9 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
 
         // Print loan calculation
         function printLoanCalculation() {
-            const calcSchedule = document.getElementById('calcSchedule').innerHTML;
+            const calcSchedule = document.getElementById('calcSchedule');
+            if (!calcSchedule) return;
+            
             const printWindow = window.open('', '_blank');
             printWindow.document.write(`
                 <html>
@@ -6378,7 +6013,7 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
                             </tr>
                         </thead>
                         <tbody>
-                            ${calcSchedule}
+                            ${calcSchedule.innerHTML}
                         </tbody>
                     </table>
                 </body>
@@ -6392,7 +6027,9 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
 
         // Print report
         function printReport() {
-            const reportData = document.getElementById('reportData').innerHTML;
+            const reportData = document.getElementById('reportData');
+            if (!reportData) return;
+            
             const printWindow = window.open('', '_blank');
             printWindow.document.write(`
                 <html>
@@ -6421,7 +6058,7 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
                             </tr>
                         </thead>
                         <tbody>
-                            ${reportData}
+                            ${reportData.innerHTML}
                         </tbody>
                     </table>
                 </body>
@@ -6439,161 +6076,130 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
             let csvContent = "Name,Region,Phone,Loan Amount,Total Amount,Balance,Status\n";
             
             borrowers.forEach(borrower => {
-                const status = borrower.status === 'active' ? 'Active' : 
+                                const status = borrower.status === 'active' ? 'Active' : 
                              borrower.status === 'pending' ? 'Pending' : 
-                             borrower.status === 'overdue' ? 'Overdue' : 
-                             'Completed';
+                             borrower.status === 'overdue' ? 'Overdue' : 'Completed';
                 
-                csvContent += `"${borrower.fullName}","${borrower.region}","${borrower.phoneNumber}","${borrower.loanAmount}","${borrower.totalAmount}","${borrower.balance}","${status}"\n`;
+                csvContent += `"${borrower.fullName}",${borrower.region},${borrower.phoneNumber},${borrower.loanAmount},${borrower.totalAmount},${borrower.balance},${status}\n`;
             });
             
             // Create download link
-            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'borrowers_list.csv';
-            a.click();
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'borrowers-list.csv';
+            link.click();
             
             showNotification('Borrowers list exported successfully', 'success');
         }
 
-        // Export reminders
-        function exportReminders() {
-            // Create CSV content
-            let csvContent = "Borrower,Type,Date,Time,Amount,Status,Method\n";
+        // Format currency
+        function formatCurrency(amount, currency, compact = false) {
+            if (isNaN(amount)) return '0';
             
-            reminders.forEach(reminder => {
-                const borrower = borrowers.find(b => b.id === reminder.borrowerId);
-                const borrowerName = borrower ? borrower.fullName : 'Unknown';
-                
-                csvContent += `"${borrowerName}","${reminder.type}","${reminder.date}","${reminder.time}","${reminder.amount || 0}","${reminder.status}","${reminder.method}"\n`;
+            const formatter = new Intl.NumberFormat('en-TZ', {
+                style: 'currency',
+                currency: currency || 'TZS',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
             });
             
-            // Create download link
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'reminders_list.csv';
-            a.click();
+            let formatted = formatter.format(amount);
             
-            showNotification('Reminders exported successfully', 'success');
+            // For compact display (used in charts)
+            if (compact && amount >= 1000000) {
+                formatted = formatter.format(amount / 1000000) + 'M';
+            } else if (compact && amount >= 1000) {
+                formatted = formatter.format(amount / 1000) + 'K';
+            }
+            
+            return formatted;
         }
 
         // Load today's repayments
         function loadTodaysRepayments() {
-            // This would be implemented in the full version
+            const todaysRepayments = document.getElementById('todaysRepayments');
+            if (!todaysRepayments) return;
+            
+            todaysRepayments.innerHTML = '';
+            
+            const today = new Date().toISOString().split('T')[0];
+            const todaysPayments = paymentSchedules.filter(
+                ps => ps.dueDate.split('T')[0] === today && ps.status === 'pending'
+            );
+            
+            if (todaysPayments.length === 0) {
+                todaysRepayments.innerHTML = '<tr><td colspan="5" style="text-align: center;">No repayments due today</td></tr>';
+                return;
+            }
+            
+            todaysPayments.forEach(payment => {
+                const borrower = borrowers.find(b => b.id === payment.borrowerId);
+                if (!borrower) return;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${borrower.fullName}</td>
+                    <td>${borrower.phoneNumber}</td>
+                    <td>${formatCurrency(payment.amountDue, borrower.loanCurrency)}</td>
+                    <td><span class="status-indicator status-pending"></span> Due Today</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="recordPaymentFromSchedule('${payment.id}')">
+                            <i class="fas fa-money-bill-wave"></i> Record
+                        </button>
+                    </td>
+                `;
+                todaysRepayments.appendChild(row);
+            });
         }
 
         // Load reminders
         function loadReminders() {
             const remindersBody = document.getElementById('remindersList');
+            if (!remindersBody) return;
+            
             remindersBody.innerHTML = '';
             
             if (reminders.length === 0) {
-                remindersBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No reminders found</td></tr>';
+                remindersBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No reminders found</td></tr>';
                 return;
             }
             
-            reminders.forEach(reminder => {
+            // Sort by date (soonest first)
+            const sortedReminders = [...reminders].sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            sortedReminders.forEach(reminder => {
                 const borrower = borrowers.find(b => b.id === reminder.borrowerId);
-                if (!borrower) return;
+                const borrowerName = borrower ? borrower.fullName : 'Unknown Borrower';
                 
-                const statusIndicator = reminder.status === 'pending' ? 'status-pending' : 
-                                      reminder.status === 'completed' ? 'status-active' : 
-                                      'status-inactive';
+                const statusIndicator = reminder.status === 'completed' ? 'status-active' : 
+                                      new Date(reminder.date) < new Date() ? 'status-overdue' : 
+                                      'status-pending';
                 
-                const statusText = reminder.status === 'pending' ? 'Pending' : 
-                                 reminder.status === 'completed' ? 'Completed' : 
-                                 'Canceled';
+                const statusText = reminder.status === 'completed' ? 'Completed' : 
+                                 new Date(reminder.date) < new Date() ? 'Overdue' : 
+                                 'Pending';
                 
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${borrower.fullName}</td>
+                    <td>${borrowerName}</td>
                     <td>${reminder.type}</td>
-                    <td>${new Date(reminder.date).toLocaleDateString()} at ${reminder.time}</td>
-                    <td>${formatCurrency(reminder.amount || 0, currentCurrency)}</td>
-                    <td><span class="status-indicator ${statusIndicator}"></span> ${statusText}</td>
+                    <td>${new Date(reminder.date).toLocaleDateString()} ${reminder.time || ''}</td>
                     <td>${reminder.method}</td>
+                    <td><span class="status-indicator ${statusIndicator}"></span> ${statusText}</td>
                     <td>
-                        <button class="action-button view-button" onclick="viewReminder('${reminder.id}')" title="${translations[currentLanguage].view}">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="action-button edit-button" onclick="editReminder('${reminder.id}')" title="${translations[currentLanguage].edit}">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="action-button delete-button" onclick="deleteReminder('${reminder.id}')" title="${translations[currentLanguage].delete}">
+                        ${reminder.status !== 'completed' ? `
+                            <button class="action-button edit-button" onclick="completeReminder('${reminder.id}')" title="Complete">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        ` : ''}
+                        <button class="action-button delete-button" onclick="deleteReminder('${reminder.id}')" title="Delete">
                             <i class="fas fa-trash"></i>
                         </button>
                     </td>
                 `;
                 remindersBody.appendChild(row);
-            });
-        }
-
-        // View reminder
-        function viewReminder(reminderId) {
-            const reminder = reminders.find(r => r.id === reminderId);
-            if (!reminder) {
-                showNotification('Reminder not found', 'error');
-                return;
-            }
-            
-            const borrower = borrowers.find(b => b.id === reminder.borrowerId);
-            if (!borrower) {
-                showNotification('Borrower not found', 'error');
-                return;
-            }
-            
-            // Show reminder details in a modal
-            const modalContent = `
-                <div class="modal-header">
-                    <h3>Reminder Details</h3>
-                    <span class="close-modal">&times;</span>
-                </div>
-                <div class="modal-body">
-                    <div class="info-grid">
-                        <div class="info-card">
-                            <h4>Borrower Information</h4>
-                            <p><strong>Name:</strong> ${borrower.fullName}</p>
-                            <p><strong>Phone:</strong> ${borrower.phoneNumber}</p>
-                            <p><strong>Region:</strong> ${borrower.region}</p>
-                        </div>
-                        <div class="info-card">
-                            <h4>Reminder Details</h4>
-                            <p><strong>Type:</strong> ${reminder.type}</p>
-                            <p><strong>Date:</strong> ${reminder.date} at ${reminder.time}</p>
-                            <p><strong>Status:</strong> ${reminder.status}</p>
-                            <p><strong>Method:</strong> ${reminder.method}</p>
-                        </div>
-                        <div class="info-card">
-                            <h4>Message</h4>
-                            <p>${reminder.message}</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary close-modal">Close</button>
-                    ${reminder.status === 'pending' ? `
-                        <button type="button" class="btn btn-primary" onclick="completeReminder('${reminder.id}')">
-                            <i class="fas fa-check"></i> Mark as Completed
-                        </button>
-                    ` : ''}
-                </div>
-            `;
-            
-            // Create and show modal
-            const modal = document.createElement('div');
-            modal.className = 'modal';
-            modal.innerHTML = `<div class="modal-content">${modalContent}</div>`;
-            document.body.appendChild(modal);
-            modal.style.display = 'flex';
-            
-            // Add close event
-            modal.querySelector('.close-modal').addEventListener('click', () => {
-                modal.style.display = 'none';
-                document.body.removeChild(modal);
             });
         }
 
@@ -6607,185 +6213,29 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
             
             reminder.status = 'completed';
             saveData();
-            loadReminders();
-            
-            // Close all modals
-            document.querySelectorAll('.modal').forEach(modal => {
-                modal.style.display = 'none';
-            });
             
             showNotification('Reminder marked as completed', 'success');
-        }
-
-        // Edit reminder
-        function editReminder(reminderId) {
-            const reminder = reminders.find(r => r.id === reminderId);
-            if (!reminder) {
-                showNotification('Reminder not found', 'error');
-                return;
-            }
-            
-            const borrower = borrowers.find(b => b.id === reminder.borrowerId);
-            if (!borrower) {
-                showNotification('Borrower not found', 'error');
-                return;
-            }
-            
-            // Fill the reminder form
-            document.getElementById('reminderBorrower').value = reminder.borrowerId;
-            document.getElementById('reminderType').value = reminder.type;
-            document.getElementById('reminderDate').value = reminder.date;
-            document.getElementById('reminderTime').value = reminder.time;
-            document.getElementById('reminderMethod').value = reminder.method;
-            document.getElementById('reminderAmount').value = reminder.amount || '';
-            document.getElementById('reminderMessage').value = reminder.message;
-            
-            // Show the modal
-            document.getElementById('addReminderModal').style.display = 'flex';
-            
-            // Change the form submit to update instead of create
-            const reminderForm = document.getElementById('reminderForm');
-            const originalSubmit = reminderForm.onsubmit;
-            
-            reminderForm.onsubmit = function(e) {
-                e.preventDefault();
-                
-                // Update reminder data
-                reminder.borrowerId = document.getElementById('reminderBorrower').value;
-                reminder.type = document.getElementById('reminderType').value;
-                reminder.date = document.getElementById('reminderDate').value;
-                reminder.time = document.getElementById('reminderTime').value;
-                reminder.method = document.getElementById('reminderMethod').value;
-                reminder.amount = document.getElementById('reminderAmount').value ? parseFloat(document.getElementById('reminderAmount').value) : null;
-                reminder.message = document.getElementById('reminderMessage').value;
-                
-                // Save data
-                saveData();
-                
-                // Show success message
-                showNotification('Reminder updated successfully!', 'success');
-                
-                // Reset form
-                reminderForm.reset();
-                
-                // Close modal
-                document.getElementById('addReminderModal').style.display = 'none';
-                
-                // Update reminders list
-                loadReminders();
-                
-                // Reset form submit handler
-                reminderForm.onsubmit = originalSubmit;
-            };
+            loadReminders();
         }
 
         // Delete reminder
         function deleteReminder(reminderId) {
             if (confirm('Are you sure you want to delete this reminder?')) {
-                reminders = reminders.filter(r => r.id !== reminderId);
+                const reminderIndex = reminders.findIndex(r => r.id === reminderId);
+                if (reminderIndex === -1) {
+                    showNotification('Reminder not found', 'error');
+                    return;
+                }
+                
+                reminders.splice(reminderIndex, 1);
                 saveData();
-                loadReminders();
+                
                 showNotification('Reminder deleted successfully', 'success');
+                loadReminders();
             }
         }
 
-        // Filter reminders
-        function filterReminders() {
-            const typeFilter = document.getElementById('reminderTypeFilter').value;
-            const statusFilter = document.getElementById('reminderStatusFilter').value;
-            const dateFilter = document.getElementById('reminderDateFilter').value;
-            
-            const filteredReminders = reminders.filter(reminder => {
-                // Filter by type
-                if (typeFilter && reminder.type !== typeFilter) {
-                    return false;
-                }
-                
-                // Filter by status
-                if (statusFilter && reminder.status !== statusFilter) {
-                    return false;
-                }
-                
-                // Filter by date
-                if (dateFilter) {
-                    const reminderDate = new Date(reminder.date);
-                    const today = new Date();
-                    
-                    switch(dateFilter) {
-                        case 'today':
-                            if (reminderDate.toDateString() !== today.toDateString()) {
-                                return false;
-                            }
-                            break;
-                        case 'week':
-                            const weekStart = new Date(today);
-                            weekStart.setDate(today.getDate() - today.getDay());
-                            const weekEnd = new Date(weekStart);
-                            weekEnd.setDate(weekStart.getDate() + 6);
-                            
-                            if (reminderDate < weekStart || reminderDate > weekEnd) {
-                                return false;
-                            }
-                            break;
-                        case 'month':
-                            if (reminderDate.getMonth() !== today.getMonth() || reminderDate.getFullYear() !== today.getFullYear()) {
-                                return false;
-                            }
-                            break;
-                    }
-                }
-                
-                return true;
-            });
-            
-            // Update reminders list
-            const remindersBody = document.getElementById('remindersList');
-            remindersBody.innerHTML = '';
-            
-            if (filteredReminders.length === 0) {
-                remindersBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No reminders found</td></tr>';
-                return;
-            }
-            
-            filteredReminders.forEach(reminder => {
-                const borrower = borrowers.find(b => b.id === reminder.borrowerId);
-                if (!borrower) return;
-                
-                const statusIndicator = reminder.status === 'pending' ? 'status-pending' : 
-                                      reminder.status === 'completed' ? 'status-active' : 
-                                      'status-inactive';
-                
-                const statusText = reminder.status === 'pending' ? 'Pending' : 
-                                 reminder.status === 'completed' ? 'Completed' : 
-                                 'Canceled';
-                
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${borrower.fullName}</td>
-                    <td>${reminder.type}</td>
-                    <td>${new Date(reminder.date).toLocaleDateString()} at ${reminder.time}</td>
-                    <td>${formatCurrency(reminder.amount || 0, currentCurrency)}</td>
-                    <td><span class="status-indicator ${statusIndicator}"></span> ${statusText}</td>
-                    <td>${reminder.method}</td>
-                    <td>
-                        <button class="action-button view-button" onclick="viewReminder('${reminder.id}')" title="${translations[currentLanguage].view}">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="action-button edit-button" onclick="editReminder('${reminder.id}')" title="${translations[currentLanguage].edit}">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="action-button delete-button" onclick="deleteReminder('${reminder.id}')" title="${translations[currentLanguage].delete}">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                `;
-                remindersBody.appendChild(row);
-            });
-            
-            showNotification(`Filtered ${filteredReminders.length} reminders`, 'info');
-        }
-
-        // Add new reminder
+        // Add reminder
         function addReminder() {
             // Check user permissions
             if (!['Administrator', 'Manager', 'Loan Officer'].includes(currentUser.role)) {
@@ -6795,50 +6245,87 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
             
             document.getElementById('reminderForm').reset();
             document.getElementById('reminderDate').value = new Date().toISOString().split('T')[0];
-            document.getElementById('reminderTime').value = '10:00';
             
             // Update borrower dropdown
-            const reminderBorrower = document.getElementById('reminderBorrower');
-            reminderBorrower.innerHTML = '<option value="">-- Select Borrower --</option>';
+            updateReminderBorrowerDropdown();
+            
+            document.getElementById('addReminderModal').style.display = 'flex';
+            fabMenu.classList.remove('active');
+        }
+
+        // Update reminder borrower dropdown
+        function updateReminderBorrowerDropdown() {
+            const borrowerSelect = document.getElementById('reminderBorrower');
+            if (!borrowerSelect) return;
+            
+            borrowerSelect.innerHTML = '<option value="">-- Select Borrower --</option>';
             
             borrowers.forEach(borrower => {
                 if (borrower.status === 'active') {
                     const option = document.createElement('option');
                     option.value = borrower.id;
                     option.textContent = `${borrower.fullName} (${borrower.phoneNumber})`;
-                    reminderBorrower.appendChild(option);
+                    borrowerSelect.appendChild(option);
                 }
             });
-            
-            document.getElementById('addReminderModal').style.display = 'flex';
         }
 
         // Load reports
         function loadReports() {
             const reportData = document.getElementById('reportData');
+            if (!reportData) return;
+            
             reportData.innerHTML = '';
             
-            // Sample report data
-            const sampleData = [
-                { month: 'Jan 2023', loansDisbursed: 15, amountDisbursed: 75000000, repaymentsCollected: 12, amountCollected: 45000000, par30: 2, par60: 1, par90: 0 },
-                { month: 'Feb 2023', loansDisbursed: 18, amountDisbursed: 90000000, repaymentsCollected: 16, amountCollected: 60000000, par30: 1, par60: 0, par90: 0 },
-                { month: 'Mar 2023', loansDisbursed: 22, amountDisbursed: 110000000, repaymentsCollected: 20, amountCollected: 85000000, par30: 1, par60: 1, par90: 0 },
-                { month: 'Apr 2023', loansDisbursed: 20, amountDisbursed: 100000000, repaymentsCollected: 18, amountCollected: 75000000, par30: 2, par60: 0, par90: 0 },
-                { month: 'May 2023', loansDisbursed: 25, amountDisbursed: 125000000, repaymentsCollected: 23, amountCollected: 105000000, par30: 1, par60: 1, par90: 0 },
-                { month: 'Jun 2023', loansDisbursed: 28, amountDisbursed: 140000000, repaymentsCollected: 26, amountCollected: 120000000, par30: 2, par60: 0, par90: 0 }
-            ];
+            // Generate report data for the last 6 months
+            const months = [];
+            const currentDate = new Date();
             
-            sampleData.forEach(data => {
+            for (let i = 5; i >= 0; i--) {
+                const date = new Date();
+                date.setMonth(date.getMonth() - i);
+                months.push({
+                    name: date.toLocaleString('default', { month: 'long', year: 'numeric' }),
+                    year: date.getFullYear(),
+                    month: date.getMonth() + 1
+                });
+            }
+            
+            months.forEach(month => {
+                // Calculate metrics for this month
+                const monthBorrowers = borrowers.filter(b => {
+                    const borrowerDate = new Date(b.createdAt);
+                    return borrowerDate.getFullYear() === month.year && 
+                           borrowerDate.getMonth() + 1 === month.month;
+                });
+                
+                const loansDisbursed = monthBorrowers.length;
+                const amountDisbursed = monthBorrowers.reduce((sum, b) => sum + b.loanAmount, 0);
+                
+                const monthRepayments = repayments.filter(r => {
+                    const repaymentDate = new Date(r.date);
+                    return repaymentDate.getFullYear() === month.year && 
+                           repaymentDate.getMonth() + 1 === month.month;
+                });
+                
+                const repaymentsCollected = monthRepayments.length;
+                const amountCollected = monthRepayments.reduce((sum, r) => sum + r.amount, 0);
+                
+                // Calculate PAR (Portfolio at Risk)
+                const par30 = calculatePAR(30);
+                const par60 = calculatePAR(60);
+                const par90 = calculatePAR(90);
+                
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${data.month}</td>
-                    <td>${data.loansDisbursed}</td>
-                    <td>${formatCurrency(data.amountDisbursed, currentCurrency)}</td>
-                    <td>${data.repaymentsCollected}</td>
-                    <td>${formatCurrency(data.amountCollected, currentCurrency)}</td>
-                    <td>${data.par30}</td>
-                    <td>${data.par60}</td>
-                    <td>${data.par90}</td>
+                    <td>${month.name}</td>
+                    <td>${loansDisbursed}</td>
+                    <td>${formatCurrency(amountDisbursed, currentCurrency)}</td>
+                    <td>${repaymentsCollected}</td>
+                    <td>${formatCurrency(amountCollected, currentCurrency)}</td>
+                    <td>${par30.toFixed(2)}%</td>
+                    <td>${par60.toFixed(2)}%</td>
+                    <td>${par90.toFixed(2)}%</td>
                 `;
                 reportData.appendChild(row);
             });
@@ -6847,39 +6334,87 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
             initReportChart();
         }
 
+        // Calculate Portfolio at Risk (PAR)
+        function calculatePAR(days) {
+            const cutoffDate = new Date();
+            cutoffDate.setDate(cutoffDate.getDate() - days);
+            
+            let totalParValue = 0;
+            let totalPortfolioValue = 0;
+            
+            borrowers.forEach(borrower => {
+                if (borrower.status === 'active' && borrower.balance > 0) {
+                    // Check if this borrower has any overdue payments
+                    const overduePayments = paymentSchedules.filter(
+                        ps => ps.borrowerId === borrower.id && 
+                              ps.status === 'pending' && 
+                              new Date(ps.dueDate) < cutoffDate
+                    );
+                    
+                    if (overduePayments.length > 0) {
+                        totalParValue += borrower.balance;
+                    }
+                    
+                    totalPortfolioValue += borrower.balance;
+                }
+            });
+            
+            return totalPortfolioValue > 0 ? (totalParValue / totalPortfolioValue) * 100 : 0;
+        }
+
         // Initialize report chart
         function initReportChart() {
-            const reportChartCtx = document.getElementById('reportChart');
-            if (!reportChartCtx) return;
+            const reportCtx = document.getElementById('reportChart');
+            if (!reportCtx) return;
             
-            // Destroy existing chart if it exists
             if (reportChart) {
                 reportChart.destroy();
             }
             
-            // Sample data for report chart
-            const months = ['Jan 2023', 'Feb 2023', 'Mar 2023', 'Apr 2023', 'May 2023', 'Jun 2023'];
-            const disbursementData = [75000000, 90000000, 110000000, 100000000, 125000000, 140000000];
-            const collectionData = [45000000, 60000000, 85000000, 75000000, 105000000, 120000000];
+            // Prepare data for report chart (PAR over time)
+            const months = [];
+            const par30Data = [];
+            const par60Data = [];
+            const par90Data = [];
             
-            reportChart = new Chart(reportChartCtx, {
-                type: 'bar',
+            const currentDate = new Date();
+            
+            for (let i = 5; i >= 0; i--) {
+                const date = new Date();
+                date.setMonth(date.getMonth() - i);
+                months.push(date.toLocaleString('default', { month: 'short' }));
+                
+                // For demo purposes, use random data
+                par30Data.push(Math.random() * 10);
+                par60Data.push(Math.random() * 5);
+                par90Data.push(Math.random() * 2);
+            }
+            
+            reportChart = new Chart(reportCtx, {
+                type: 'line',
                 data: {
                     labels: months,
                     datasets: [
                         {
-                            label: 'Amount Disbursed',
-                            data: disbursementData,
-                            backgroundColor: 'rgba(46, 134, 222, 0.7)',
-                            borderColor: 'rgba(46, 134, 222, 1)',
-                            borderWidth: 1
+                            label: 'PAR 30',
+                            data: par30Data,
+                            borderColor: 'rgba(255, 159, 67, 1)',
+                            backgroundColor: 'rgba(255, 159, 67, 0.2)',
+                            tension: 0.1
                         },
                         {
-                            label: 'Amount Collected',
-                            data: collectionData,
-                            backgroundColor: 'rgba(16, 172, 132, 0.7)',
-                            borderColor: 'rgba(16, 172, 132, 1)',
-                            borderWidth: 1
+                            label: 'PAR 60',
+                            data: par60Data,
+                            borderColor: 'rgba(238, 82, 83, 1)',
+                            backgroundColor: 'rgba(238, 82, 83, 0.2)',
+                            tension: 0.1
+                        },
+                        {
+                            label: 'PAR 90',
+                            data: par90Data,
+                            borderColor: 'rgba(153, 102, 255, 1)',
+                            backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                            tension: 0.1
                         }
                     ]
                 },
@@ -6892,7 +6427,7 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    return ` ${formatCurrency(context.raw, currentCurrency)}`;
+                                    return ` ${context.dataset.label}: ${context.raw.toFixed(2)}%`;
                                 }
                             }
                         }
@@ -6900,10 +6435,9 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
                     scales: {
                         y: {
                             beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return formatCurrency(value, currentCurrency, true);
-                                }
+                            title: {
+                                display: true,
+                                text: 'PAR (%)'
                             }
                         }
                     }
@@ -6911,152 +6445,15 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
             });
         }
 
-        // Filter reports
-        function filterReports() {
-            const reportType = document.getElementById('reportType').value;
-            const fromDate = document.getElementById('reportFromDate').value;
-            const toDate = document.getElementById('reportToDate').value;
-            const region = document.getElementById('reportRegion').value;
-            
-            if (!reportType) {
-                showNotification('Please select a report type', 'warning');
-                return;
-            }
-            
-            // Filter data based on criteria
-            let filteredData = [];
-            
-            // This would be implemented to filter actual data based on the criteria
-            // For now, we'll use sample data
-            const sampleData = [
-                { month: 'Jan 2023', loansDisbursed: 15, amountDisbursed: 75000000, repaymentsCollected: 12, amountCollected: 45000000, par30: 2, par60: 1, par90: 0 },
-                { month: 'Feb 2023', loansDisbursed: 18, amountDisbursed: 90000000, repaymentsCollected: 16, amountCollected: 60000000, par30: 1, par60: 0, par90: 0 },
-                { month: 'Mar 2023', loansDisbursed: 22, amountDisbursed: 110000000, repaymentsCollected: 20, amountCollected: 85000000, par30: 1, par60: 1, par90: 0 },
-                { month: 'Apr 2023', loansDisbursed: 20, amountDisbursed: 100000000, repaymentsCollected: 18, amountCollected: 75000000, par30: 2, par60: 0, par90: 0 },
-                { month: 'May 2023', loansDisbursed: 25, amountDisbursed: 125000000, repaymentsCollected: 23, amountCollected: 105000000, par30: 1, par60: 1, par90: 0 },
-                { month: 'Jun 2023', loansDisbursed: 28, amountDisbursed: 140000000, repaymentsCollected: 26, amountCollected: 120000000, par30: 2, par60: 0, par90: 0 }
-            ];
-            
-            filteredData = sampleData;
-            
-            // Update report data
-            const reportData = document.getElementById('reportData');
-            reportData.innerHTML = '';
-            
-            filteredData.forEach(data => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${data.month}</td>
-                    <td>${data.loansDisbursed}</td>
-                    <td>${formatCurrency(data.amountDisbursed, currentCurrency)}</td>
-                    <td>${data.repaymentsCollected}</td>
-                    <td>${formatCurrency(data.amountCollected, currentCurrency)}</td>
-                    <td>${data.par30}</td>
-                    <td>${data.par60}</td>
-                    <td>${data.par90}</td>
-                `;
-                reportData.appendChild(row);
-            });
-            
-            showNotification(`Report filtered with ${filteredData.length} records`, 'info');
-        }
-
-        // Generate report
-        function generateReport() {
-            const reportType = document.getElementById('reportType').value;
-            
-            if (!reportType) {
-                showNotification('Please select a report type', 'warning');
-                return;
-            }
-            
-            // Create CSV content based on report type
-            let csvContent = '';
-            let fileName = '';
-            
-            switch(reportType) {
-                case 'disbursement':
-                    csvContent = "Month,Loans Disbursed,Amount Disbursed\n";
-                    borrowers.forEach(borrower => {
-                        const date = new Date(borrower.createdAt);
-                        const monthYear = `${date.getFullYear()}-${date.getMonth() + 1}`;
-                        csvContent += `"${monthYear}","1","${borrower.loanAmount}"\n`;
-                    });
-                    fileName = 'loan_disbursement_report.csv';
-                    break;
-                case 'repayment':
-                    csvContent = "Date,Borrower,Amount,Method\n";
-                    repayments.forEach(repayment => {
-                        const borrower = borrowers.find(b => b.id === repayment.borrowerId);
-                        const borrowerName = borrower ? borrower.fullName : 'Unknown';
-                        csvContent += `"${repayment.date}","${borrowerName}","${repayment.amount}","${repayment.paymentMethod}"\n`;
-                    });
-                    fileName = 'repayment_report.csv';
-                    break;
-                case 'risk':
-                    csvContent = "Borrower,Loan Amount,Balance,Status,Region\n";
-                    borrowers.forEach(borrower => {
-                        csvContent += `"${borrower.fullName}","${borrower.loanAmount}","${borrower.balance}","${borrower.status}","${borrower.region}"\n`;
-                    });
-                    fileName = 'portfolio_risk_report.csv';
-                    break;
-                case 'delinquency':
-                    csvContent = "Borrower,Due Date,Amount Due,Days Overdue\n";
-                    paymentSchedules.forEach(schedule => {
-                        if (schedule.status === 'pending' && new Date(schedule.dueDate) < new Date()) {
-                            const borrower = borrowers.find(b => b.id === schedule.borrowerId);
-                            const borrowerName = borrower ? borrower.fullName : 'Unknown';
-                            const daysOverdue = Math.floor((new Date() - new Date(schedule.dueDate)) / (1000 * 60 * 60 * 24));
-                            csvContent += `"${borrowerName}","${schedule.dueDate}","${schedule.amountDue}","${daysOverdue}"\n`;
-                        }
-                    });
-                    fileName = 'delinquency_report.csv';
-                    break;
-                case 'profitability':
-                    csvContent = "Month,Interest Income,Total Loans,Profit Margin\n";
-                    const profitByMonth = {};
-                    borrowers.forEach(borrower => {
-                        const date = new Date(borrower.createdAt);
-                        const monthYear = `${date.getFullYear()}-${date.getMonth() + 1}`;
-                        
-                        if (!profitByMonth[monthYear]) {
-                            profitByMonth[monthYear] = {
-                                interest: 0,
-                                principal: 0
-                            };
-                        }
-                        
-                        profitByMonth[monthYear].interest += (borrower.totalAmount - borrower.loanAmount);
-                        profitByMonth[monthYear].principal += borrower.loanAmount;
-                    });
-                    
-                    Object.keys(profitByMonth).sort().forEach(month => {
-                        const data = profitByMonth[month];
-                        const profitMargin = (data.interest / data.principal) * 100;
-                        csvContent += `"${month}","${data.interest}","${data.principal}","${profitMargin.toFixed(2)}%"\n`;
-                    });
-                    fileName = 'profitability_report.csv';
-                    break;
-            }
-            
-            // Create download link
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = fileName;
-            a.click();
-            
-            showNotification('Report exported successfully', 'success');
-        }
-
         // Load users
         function loadUsers() {
-            const usersBody = document.getElementById('userList');
+            const usersBody = document.getElementById('usersList');
+            if (!usersBody) return;
+            
             usersBody.innerHTML = '';
             
             if (users.length === 0) {
-                usersBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No users found</td></tr>';
+                usersBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No users found</td></tr>';
                 return;
             }
             
@@ -7070,15 +6467,16 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
                     <td>${user.email}</td>
                     <td>${user.role}</td>
                     <td>${user.regions.join(', ')}</td>
-                    <td>${new Date(user.lastLogin).toLocaleDateString()}</td>
                     <td><span class="status-indicator ${statusIndicator}"></span> ${statusText}</td>
                     <td>
-                        <button class="action-button edit-button" onclick="editUser('${user.id}')" title="${translations[currentLanguage].edit}">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="action-button delete-button" onclick="deleteUser('${user.id}')" title="${translations[currentLanguage].delete}">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                        ${user.id !== currentUser.id ? `
+                            <button class="action-button edit-button" onclick="editUser('${user.id}')" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-button delete-button" onclick="deleteUser('${user.id}')" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        ` : ''}
                     </td>
                 `;
                 usersBody.appendChild(row);
@@ -7099,80 +6497,106 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
                 return;
             }
             
-            // Fill the user form
-            document.getElementById('userName').value = user.name;
+            // Fill the form with user data
+            document.getElementById('userFullName').value = user.name;
             document.getElementById('userEmail').value = user.email;
             document.getElementById('userRole').value = user.role;
-            document.getElementById('userStatus').value = user.active ? 'active' : 'inactive';
-            document.getElementById('userRegions').value = user.regions.join(', ');
+            document.getElementById('userActive').checked = user.active;
+            
+            // Set regions
+            const regionsContainer = document.getElementById('userRegions');
+            regionsContainer.innerHTML = '';
+            
+            const allRegions = ['All', 'Dar es Salaam', 'Arusha', 'Mwanza', 'Dodoma', 'Mbeya', 'Morogoro', 'Tanga', 'Zanzibar'];
+            
+            allRegions.forEach(region => {
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `region-${region}`;
+                checkbox.value = region;
+                checkbox.checked = user.regions.includes(region);
+                
+                const label = document.createElement('label');
+                label.htmlFor = `region-${region}`;
+                label.textContent = region;
+                
+                const div = document.createElement('div');
+                div.className = 'checkbox-group';
+                div.appendChild(checkbox);
+                div.appendChild(label);
+                
+                regionsContainer.appendChild(div);
+            });
             
             // Show the modal
             document.getElementById('addUserModal').style.display = 'flex';
             
-            // Change the form submit to update instead of create
-            const userForm = document.getElementById('userForm');
-            const originalSubmit = userForm.onsubmit;
-            
-            userForm.onsubmit = function(e) {
-                e.preventDefault();
-                
-                if (!validateUserForm()) {
-                    return;
-                }
-                
-                // Update user data
-                user.name = document.getElementById('userName').value;
-                user.email = document.getElementById('userEmail').value;
-                user.role = document.getElementById('userRole').value;
-                user.active = document.getElementById('userStatus').value === 'active';
-                user.regions = document.getElementById('userRegions').value.split(',').map(region => region.trim());
-                
-                // Save data
-                saveData();
-                
-                // Show success message
-                showNotification('User updated successfully!', 'success');
-                
-                // Reset form
-                userForm.reset();
-                
-                // Close modal
-                document.getElementById('addUserModal').style.display = 'none';
-                
-                // Update users list
-                loadUsers();
-                updateRoleCounts();
-                
-                // Reset form submit handler
-                userForm.onsubmit = originalSubmit;
-            };
-        }
-
-        // Validate user form
-        function validateUserForm() {
-            const requiredFields = ['userName', 'userEmail', 'userRole', 'userStatus'];
-            
-            let isValid = true;
-            
-            requiredFields.forEach(fieldId => {
-                const field = document.getElementById(fieldId);
-                if (!field.value.trim()) {
-                    field.style.borderColor = 'var(--danger-color)';
-                    isValid = false;
-                } else {
-                    field.style.borderColor = 'var(--border-color)';
-                }
-            });
-            
-            // Validate email format
-            const email = document.getElementById('userEmail').value;
-            if (!/\S+@\S+\.\S+/.test(email)) {
-                document.getElementById('userEmail').style.borderColor = 'var(--danger-color)';
-                showNotification('Please enter a valid email address', 'error');
-                isValid = false;
+            // Remove any existing update button and add a new one
+            const existingUpdateBtn = document.getElementById('updateUserBtn');
+            if (existingUpdateBtn) {
+                existingUpdateBtn.remove();
             }
             
-            return isValid;
+            const submitButton = document.querySelector('#userForm button[type="submit"]');
+            const updateButton = document.createElement('button');
+            updateButton.type = 'button';
+            updateButton.id = 'updateUserBtn';
+            updateButton.className = 'btn btn-success';
+            updateButton.innerHTML = '<i class="fas fa-save"></i> Update User';
+            updateButton.onclick = function() {
+                updateUser(userId);
+            };
+            
+            submitButton.parentNode.appendChild(updateButton);
+            
+            // Hide the original submit button
+            submitButton.style.display = 'none';
+        }
+
+        // Update user
+        function updateUser(userId) {
+            const user = users.find(u => u.id === userId);
+            if (!user) {
+                showNotification('User not found', 'error');
+                return;
+            }
+            
+            // Get selected regions
+            const selectedRegions = [];
+            document.querySelectorAll('#userRegions input[type="checkbox"]:checked').forEach(checkbox => {
+                selectedRegions.push(checkbox.value);
+            });
+            
+            // Update user data
+            user.name = document.getElementById('userFullName').value;
+            user.email = document.getElementById('userEmail').value;
+            user.role = document.getElementById('userRole').value;
+            user.active = document.getElementById('userActive').checked;
+            user.regions = selectedRegions;
+            
+            // Save data
+            saveData();
+            
+            // Show success message
+            showNotification('User updated successfully!', 'success');
+            
+            // Reset form
+            document.getElementById('userForm').reset();
+            
+            // Close modal
+            document.getElementById('addUserModal').style.display = 'none';
+            
+            // Show the original submit button again and remove update button
+            const submitButton = document.querySelector('#userForm button[type="submit"]');
+            submitButton.style.display = 'block';
+            
+            const updateButton = document.getElementById('updateUserBtn');
+            if (updateButton) {
+                updateButton.remove();
+            }
+            
+            // Update users list
+            loadUsers();
         }
 
         // Delete user
@@ -7189,11 +6613,17 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
             }
             
             if (confirm('Are you sure you want to delete this user?')) {
-                users = users.filter(u => u.id !== userId);
+                const userIndex = users.findIndex(u => u.id === userId);
+                if (userIndex === -1) {
+                    showNotification('User not found', 'error');
+                    return;
+                }
+                
+                users.splice(userIndex, 1);
                 saveData();
-                loadUsers();
-                updateRoleCounts();
+                
                 showNotification('User deleted successfully', 'success');
+                loadUsers();
             }
         }
 
@@ -7214,263 +6644,16 @@ Dear {borrower_name}, this is a reminder that your payment of {payment_amount} i
             systemSettings.backupFrequency = document.getElementById('backupFrequency').value;
             systemSettings.backupLocation = document.getElementById('backupLocation').value;
             
-            localStorage.setItem('systemSettings', JSON.stringify(systemSettings));
+            saveData();
             
             // Update app title
             document.getElementById('appTitle').textContent = systemSettings.systemName;
             
-            // Update current currency and language if changed
-            if (currentCurrency !== systemSettings.defaultCurrency) {
-                setCurrency(systemSettings.defaultCurrency);
-            }
-            
-            if (currentLanguage !== systemSettings.defaultLanguage) {
-                setLanguage(systemSettings.defaultLanguage);
-            }
-            
             showNotification('System settings saved successfully', 'success');
         }
 
-        // Backup system
-        function backupSystem() {
-            // Check user permissions
-            if (currentUser.role !== 'Administrator') {
-                showNotification('You do not have permission to backup the system', 'error');
-                return;
-            }
-            
-            // Create a backup of all data
-            const backupData = {
-                borrowers: borrowers,
-                repayments: repayments,
-                paymentSchedules: paymentSchedules,
-                reminders: reminders,
-                users: users,
-                systemSettings: systemSettings,
-                backupDate: new Date().toISOString()
-            };
-            
-            // Convert to JSON string
-            const dataStr = JSON.stringify(backupData);
-            
-            // Create download link
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            
-            const exportFileDefaultName = `TanzaniaLoanPro_Backup_${new Date().toISOString().split('T')[0]}.json`;
-            
-            const linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportFileDefaultName);
-            linkElement.click();
-            
-            showNotification('System backup completed successfully', 'success');
-        }
-
-        // Format currency
-        function formatCurrency(amount, currency, compact = false) {
-            if (isNaN(amount)) return '0';
-            
-            let formattedAmount;
-            
-            if (compact && amount >= 1000000) {
-                formattedAmount = (amount / 1000000).toFixed(1) + 'M';
-            } else if (compact && amount >= 1000) {
-                formattedAmount = (amount / 1000).toFixed(1) + 'K';
-            } else {
-                formattedAmount = amount.toLocaleString();
-            }
-            
-            if (currency === 'USD') {
-                return `$${formattedAmount}`;
-            } else {
-                return `TZS ${formattedAmount}`;
-            }
-        }
-
-        // Update currency displays
-        function updateCurrencyDisplays() {
-            // Update dashboard stats
-            loadDashboardData();
-            
-            // Update borrowers list
-            loadBorrowers();
-            
-            // Update calculator
-            initCalculatorForm();
-            
-            // Update borrower details if open
-            if (currentBorrowerId) {
-                viewBorrowerDetails(currentBorrowerId);
-            }
-        }
-
-        // Get first day of month
-        function getFirstDayOfMonth() {
-            const date = new Date();
-            return new Date(date.getFullYear(), date.getMonth(), 2).toISOString().split('T')[0];
-        }
-
-        // Close modal when clicking outside
-        document.addEventListener('click', function(e) {
-            const modals = document.querySelectorAll('.modal');
-            modals.forEach(modal => {
-                if (e.target === modal) {
-                    modal.style.display = 'none';
-                }
-            });
-        });
-
-        // Close modal when clicking close button
-        document.querySelectorAll('.close-modal').forEach(btn => {
-            btn.addEventListener('click', function() {
-                this.closest('.modal').style.display = 'none';
-            });
-        });
-
         // Initialize the app when DOM is loaded
-        document.addEventListener('DOMContentLoaded', initApp);
-		
-		// Function to update role counts
-        function updateRoleCounts() {
-            // This would fetch real data in a real application
-            document.getElementById('adminCount').textContent = '1 user';
-            document.getElementById('managerCount').textContent = '2 users';
-            document.getElementById('officerCount').textContent = '5 users';
-            document.getElementById('readonlyCount').textContent = '3 users';
-        }
-        
-        // Initialize the settings section
-        function initSettings() {
-            updateRoleCounts();
-            
-            // Load saved settings
-            if (typeof systemSettings !== 'undefined') {
-                document.getElementById('systemName').value = systemSettings.systemName;
-                document.getElementById('defaultCurrency').value = systemSettings.defaultCurrency;
-                document.getElementById('defaultLanguage').value = systemSettings.defaultLanguage;
-                document.getElementById('timezone').value = systemSettings.timezone;
-                document.getElementById('smsIntegration').value = systemSettings.smsIntegration;
-                document.getElementById('emailIntegration').value = systemSettings.emailIntegration;
-                document.getElementById('backupFrequency').value = systemSettings.backupFrequency;
-                document.getElementById('backupLocation').value = systemSettings.backupLocation;
-            }
-        }
-        
-        // Call this when the settings section is shown
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize settings when the section is shown
-            const settingsSection = document.getElementById('settings');
-            if (settingsSection.classList.contains('active')) {
-                initSettings();
-            }
-            
-            // Alternatively, you can use a mutation observer to detect when the section becomes active
-            const observer = new MutationObserver(function(mutations) {
-                mutations.forEach(function(mutation) {
-                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                        if (settingsSection.classList.contains('active')) {
-                            initSettings();
-                        }
-                    }
-                });
-            });
-            
-            observer.observe(settingsSection, { attributes: true });
-        });
-		
-		// Mobile menu functionality
-function initMobileMenu() {
-  const mobileMenuToggle = document.createElement('button');
-  mobileMenuToggle.className = 'mobile-menu-toggle';
-  mobileMenuToggle.innerHTML = '<i class="fas fa-bars"></i>';
-  document.body.appendChild(mobileMenuToggle);
-  
-  const sidebar = document.querySelector('.sidebar');
-  const mainContent = document.querySelector('.main-content');
-  
-  mobileMenuToggle.addEventListener('click', function() {
-    sidebar.classList.toggle('active');
-    mobileMenuToggle.classList.toggle('active');
-    
-    if (sidebar.classList.contains('active')) {
-      mobileMenuToggle.innerHTML = '<i class="fas fa-times"></i>';
-    } else {
-      mobileMenuToggle.innerHTML = '<i class="fas fa-bars"></i>';
-    }
-  });
-  
-  // Close menu when clicking outside
-  document.addEventListener('click', function(event) {
-    if (sidebar.classList.contains('active') && 
-        !sidebar.contains(event.target) && 
-        !mobileMenuToggle.contains(event.target)) {
-      sidebar.classList.remove('active');
-      mobileMenuToggle.innerHTML = '<i class="fas fa-bars"></i>';
-    }
-  });
-  
-  // Handle resize events
-  window.addEventListener('resize', function() {
-    if (window.innerWidth > 576) {
-      sidebar.classList.remove('active');
-      mobileMenuToggle.innerHTML = '<i class="fas fa-bars"></i>';
-    }
-  });
-}
-
-// Enhance tables for mobile
-function makeTablesResponsive() {
-  document.querySelectorAll('table').forEach(table => {
-    if (window.innerWidth <= 768) {
-      table.classList.add('responsive-table');
-      
-      // Add data labels
-      const headers = Array.from(table.querySelectorAll('th'));
-      table.querySelectorAll('tbody tr').forEach(row => {
-        Array.from(row.querySelectorAll('td')).forEach((cell, index) => {
-          if (headers[index]) {
-            cell.setAttribute('data-label', headers[index].textContent);
-          }
-        });
-      });
-    } else {
-      table.classList.remove('responsive-table');
-    }
-  });
-}
-
-// Initialize responsive behaviors when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-  initMobileMenu();
-  makeTablesResponsive();
-  
-  // Re-run on resize
-  window.addEventListener('resize', makeTablesResponsive);
-});
-
-// Enhance chart responsiveness
-function initResponsiveCharts() {
-  if (typeof Chart !== 'undefined') {
-    // Make charts responsive
-    Chart.defaults.maintainAspectRatio = false;
-    
-    // Update charts on resize
-    window.addEventListener('resize', function() {
-      if (window.loanPerformanceChart) {
-        window.loanPerformanceChart.resize();
-      }
-      if (window.portfolioDistributionChart) {
-        window.portfolioDistributionChart.resize();
-      }
-      if (window.profitChart) {
-        window.profitChart.resize();
-      }
-    });
-  }
-}
-
-// Call this when charts are initialized
-initResponsiveCharts();
+          document.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
 </html>
