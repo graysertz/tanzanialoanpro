@@ -13,7 +13,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-     <style>/* ============================================================
+     
+	 <style>/* ============================================================
    DLMs-Pro Enterprise Loan Management System v3.5
    IMPROVED CSS — Fixed UserProfile, Notification Badge,
    Mobile Cards, Colorful Round Icons, Font Colors
@@ -1861,8 +1862,8 @@ kbd { display: inline-block; padding: 1px 5px; font-size: 0.7rem; font-family: m
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
     }
-}
-    </style>
+}</style>
+    
 </head>
 
 <body>
@@ -5478,21 +5479,33 @@ kbd { display: inline-block; padding: 1px 5px; font-size: 0.7rem; font-family: m
         </a>
     </div>
 </div>
-
-<script>/* ============================================================
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+/* ============================================================
    DLMs-Pro Enterprise Loan Management System v3.5
-   ENHANCED JAVASCRIPT — All Fixes Applied
+   ENHANCED JAVASCRIPT — Supabase Connected Edition
    
-   FIXES:
-   ★ 1) Persistent Login (stay logged in on refresh)
-   ★ 2) Admin/Manager ONLY can approve loans
-   ★ 3) Net Profit = Interest + Processing Fees (Analytics)
-   ★ 4) Branches — Add staff with photo/details
-   ★ 5) Loan Approval VIEW — full borrower/guarantor/loan/doc/photo
-   ★ 6) Daily Report — Print (not PDF download), Share (WhatsApp/Email)
-   ★ 7) Reports — Print button + Share (WhatsApp/Email)
-   ★ 8) Improved Swahili Translation
+   INTEGRATIONS:
+   ★ Supabase Cloud Database (PostgreSQL)
+   ★ Supabase Authentication
+   ★ Offline Fallback to LocalStorage
    ============================================================ */
+
+// ==================== SUPABASE INITIALIZATION ====================
+const SUPABASE_URL = 'https://ebcmxrbgkwidnkvteiyt.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_I1kO3hd6hVWklxhIJ4Zh8Q_lMKG6xY5';
+
+let supabase;
+try {
+    if (window.supabase) {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        console.log('%c✅ Supabase Connected Successfully', 'color: #00d296; font-size: 12px; font-weight: bold;');
+    } else {
+        console.warn('Supabase JS library not loaded. Falling back to offline mode.');
+    }
+} catch (error) {
+    console.error('Supabase initialization error:', error);
+}
 
 // ==================== PWA SERVICE WORKER ====================
 (function registerSW() {
@@ -5541,7 +5554,7 @@ kbd { display: inline-block; padding: 1px 5px; font-size: 0.7rem; font-family: m
     });
 })();
 
-// ==================== ★ FIX #8: IMPROVED SWAHILI TRANSLATION ====================
+// ==================== SWAHILI TRANSLATION ====================
 const TRANSLATIONS = {
     en: {
         dashboard: 'Dashboard', borrowers: 'Borrowers', loans: 'Loans', loanApproval: 'Loan Approval',
@@ -5738,27 +5751,129 @@ const APP = {
 window.addEventListener('online', () => { APP.isOnline = true; showToast(t('offlineReady'), 'success'); });
 window.addEventListener('offline', () => { APP.isOnline = false; showToast(t('offlineMode'), 'warning'); });
 
-// ==================== DATA STORE ====================
+// ==================== DATA STORE (SUPABASE + LOCAL FALLBACK) ====================
 const DB = {
     _get(key, fallback = []) { try { const d = localStorage.getItem('dlms_' + key); return d ? JSON.parse(d) : fallback; } catch { return fallback; } },
-    _set(key, val) { try { localStorage.setItem('dlms_' + key, JSON.stringify(val)); } catch (e) { try { const logs = DB._get('auditLog', []); if (logs.length > 100) DB._set('auditLog', logs.slice(0, 100)); localStorage.setItem('dlms_' + key, JSON.stringify(val)); } catch(e2) { console.error('Storage error:', e2); } } },
-    get borrowers() { return this._get('borrowers'); }, set borrowers(v) { this._set('borrowers', v); },
-    get loans() { return this._get('loans'); }, set loans(v) { this._set('loans', v); },
-    get repayments() { return this._get('repayments'); }, set repayments(v) { this._set('repayments', v); },
-    get branches() { return this._get('branches'); }, set branches(v) { this._set('branches', v); },
-    get penalties() { return this._get('penalties'); }, set penalties(v) { this._set('penalties', v); },
-    get users() { return this._get('users'); }, set users(v) { this._set('users', v); },
-    get auditLog() { return this._get('auditLog'); }, set auditLog(v) { this._set('auditLog', v); },
-    get notifications() { return this._get('notifications'); }, set notifications(v) { this._set('notifications', v); },
-    get expenses() { return this._get('expenses'); }, set expenses(v) { this._set('expenses', v); },
-    get otherSources() { return this._get('otherSources'); }, set otherSources(v) { this._set('otherSources', v); },
-    get dailyReports() { return this._get('dailyReports'); }, set dailyReports(v) { this._set('dailyReports', v); },
+    _set(key, val) { try { localStorage.setItem('dlms_' + key, JSON.stringify(val)); } catch (e) { console.error('Storage error:', e); } },
+    
+    // ★ Map JS camelCase keys to your SQL snake_case table names
+    _tableMap: {
+        borrowers: 'borrowers',
+        loans: 'loans',
+        repayments: 'repayments',
+        branches: 'branches',
+        penalties: 'penalties',
+        users: 'users',
+        auditLog: 'audit_log',
+        notifications: 'notifications',
+        expenses: 'expenses',
+        otherSources: 'other_sources',
+        apiKeys: 'api_keys',
+        webhooks: 'webhooks',
+        reminderTemplates: 'reminder_templates',
+        reminderHistory: 'reminder_history'
+    },
+
+    // ★ Supabase Sync Layer tailored for your SQL Schema
+    async _supabaseUpsert(key, data) {
+        if (!supabase) return;
+        const tableName = this._tableMap[key];
+        if (!tableName) return;
+
+        try {
+            if (tableName === 'settings') {
+                // Handle the 1-row JSONB settings table
+                await supabase.from('settings').upsert({ id: 1, data: data }, { onConflict: 'id' });
+            } else if (Array.isArray(data) && data.length > 0) {
+                // Handle array tables (borrowers, loans, etc.)
+                await supabase.from(tableName).upsert(data, { onConflict: 'id' });
+            }
+        } catch (err) {
+            console.error(`Supabase upsert error (${tableName}):`, err.message);
+        }
+    },
+    
+    async _supabaseDelete(key, id) {
+        if (!supabase) return;
+        const tableName = this._tableMap[key];
+        if (!tableName) return;
+        try {
+            await supabase.from(tableName).delete().eq('id', id);
+        } catch (err) {
+            console.error(`Supabase delete error (${tableName}):`, err.message);
+        }
+    },
+
+    // ★ Fetch latest data from Supabase to update local UI
+    async syncFromCloud() {
+        if (!supabase) return;
+        try {
+            // Fetch Settings (1 row JSONB)
+            const { data: settData } = await supabase.from('settings').select('data').eq('id', 1).single();
+            if (settData) { this._set('settings', settData.data); }
+
+            // Fetch all array tables
+            const tablesToSync = Object.keys(this._tableMap).filter(k => k !== 'settings');
+            for (const key of tablesToSync) {
+                const tableName = this._tableMap[key];
+                const { data, error } = await supabase.from(tableName).select('*');
+                if (!error && data) {
+                    this._set(key, data); // Update localStorage
+                } else if (error) {
+                    console.warn(`Sync failed for ${tableName}:`, error.message);
+                }
+            }
+            console.log('%c☁️ Cloud sync complete', 'color: #4facfe;');
+        } catch (err) {
+            console.error('Cloud sync error:', err);
+        }
+    },
+
+    // ==================== GETTERS & SETTERS ====================
+    get borrowers() { return this._get('borrowers'); }, 
+    set borrowers(v) { this._set('borrowers', v); this._supabaseUpsert('borrowers', v); },
+    
+    get loans() { return this._get('loans'); }, 
+    set loans(v) { this._set('loans', v); this._supabaseUpsert('loans', v); },
+    
+    get repayments() { return this._get('repayments'); }, 
+    set repayments(v) { this._set('repayments', v); this._supabaseUpsert('repayments', v); },
+    
+    get branches() { return this._get('branches'); }, 
+    set branches(v) { this._set('branches', v); this._supabaseUpsert('branches', v); },
+    
+    get penalties() { return this._get('penalties'); }, 
+    set penalties(v) { this._set('penalties', v); this._supabaseUpsert('penalties', v); },
+    
+    get users() { return this._get('users'); }, 
+    set users(v) { this._set('users', v); this._supabaseUpsert('users', v); },
+    
+    get auditLog() { return this._get('auditLog'); }, 
+    set auditLog(v) { this._set('auditLog', v); this._supabaseUpsert('auditLog', v); },
+    
+    get notifications() { return this._get('notifications'); }, 
+    set notifications(v) { this._set('notifications', v); this._supabaseUpsert('notifications', v); },
+    
+    get expenses() { return this._get('expenses'); }, 
+    set expenses(v) { this._set('expenses', v); this._supabaseUpsert('expenses', v); },
+    
+    get otherSources() { return this._get('otherSources'); }, 
+    set otherSources(v) { this._set('otherSources', v); this._supabaseUpsert('otherSources', v); },
+    
     get settings() { return this._get('settings', { orgName: 'DLMs-Pro Microfinance', orgEmail: 'info@dlms-pro.co.tz', orgPhone: '+255 22 211 0000', orgAddress: 'Dar es Salaam, Tanzania', currency: 'TZS', defaultInterestRate: 10, maxLoanAmount: 10000000, minLoanAmount: 10000, lateFeeDefault: 5000, gracePeriod: 3, emailNotifications: true, smsNotifications: true, reminderDays: 3, theme: 'dark', language: 'en', defaultLoanTerm: 12, defaultInterestType: 'flat', overdueReminderFreq: 7, penaltyType: 'flat', penaltyAmount: 5000, penaltyDays: 7, defaultPenaltyAmount: 10000, defaultPenaltyDays: 30, autoBeforeDue: true, autoBeforeDueDays: 3, autoOnDue: true, autoOverdue: true, autoOverdueFreq: 7, autoPaymentConfirm: true, autoLoanApproval: true, autoWelcome: false, autoReminderChannel: 'sms', processingFee: 0 }); },
-    set settings(v) { this._set('settings', v); },
-    get apiKeys() { return this._get('apiKeys'); }, set apiKeys(v) { this._set('apiKeys', v); },
-    get webhooks() { return this._get('webhooks'); }, set webhooks(v) { this._set('webhooks', v); },
-    get reminderTemplates() { return this._get('reminderTemplates'); }, set reminderTemplates(v) { this._set('reminderTemplates', v); },
-    get reminderHistory() { return this._get('reminderHistory'); }, set reminderHistory(v) { this._set('reminderHistory', v); }
+    set settings(v) { this._set('settings', v); this._supabaseUpsert('settings', v); },
+    
+    get apiKeys() { return this._get('apiKeys'); }, 
+    set apiKeys(v) { this._set('apiKeys', v); this._supabaseUpsert('apiKeys', v); },
+    
+    get webhooks() { return this._get('webhooks'); }, 
+    set webhooks(v) { this._set('webhooks', v); this._supabaseUpsert('webhooks', v); },
+    
+    get reminderTemplates() { return this._get('reminderTemplates'); }, 
+    set reminderTemplates(v) { this._set('reminderTemplates', v); this._supabaseUpsert('reminderTemplates', v); },
+    
+    get reminderHistory() { return this._get('reminderHistory'); }, 
+    set reminderHistory(v) { this._set('reminderHistory', v); this._supabaseUpsert('reminderHistory', v); }
 };
 
 // ==================== UTILITIES ====================
@@ -5815,7 +5930,6 @@ function getPaymentFrequencyLabel(freq) {
 function addDaysToDate(dateStr, days) { const d = new Date(dateStr); d.setDate(d.getDate() + days); return d.toISOString().split('T')[0]; }
 function addMonthsToDate(dateStr, months) { const d = new Date(dateStr); d.setMonth(d.getMonth() + months); return d.toISOString().split('T')[0]; }
 
-// ★ FIX #6 & #7: Helper to build report text for sharing
 function buildDailyReportText() {
     const date = document.getElementById('reportDate')?.value || todayStr();
     return `${t('dailyFinancialReport')} - ${formatDate(date)}\n` +
@@ -5853,7 +5967,6 @@ function buildReportText() {
     return textContent;
 }
 
-// ★ FIX #6 & #7: Share functions
 function shareViaWhatsApp(reportText) {
     const url = `https://wa.me/?text=${encodeURIComponent(reportText)}`;
     window.open(url, '_blank');
@@ -5866,7 +5979,6 @@ function shareViaEmail(subject, body) {
     showToast(t('shareSuccess'), 'success');
 }
 
-// ★ FIX #6 & #7: Print helper (opens print dialog, NOT PDF download)
 function printReportContent(title, contentSelector) {
     const content = document.querySelector(contentSelector);
     if (!content) { showToast('No content to print', 'error'); return; }
@@ -5995,62 +6107,127 @@ function seedData() {
     ];
     DB.reminderTemplates = [
         { id: 'rt1', name: 'Payment Reminder (Before Due)', category: 'reminder', channels: ['sms', 'whatsapp', 'email'], smsContent: 'Dear {borrower_name}, your payment of {amount_due} is due on {due_date}. Please pay on time. - {company_name}', whatsappContent: 'Hello {borrower_name}! 📋\n\nThis is a friendly reminder that your loan payment of *{amount_due}* is due on *{due_date}*.\n\nPlease make your payment to avoid late fees.\n\nThank you!\n{company_name}', emailSubject: 'Payment Reminder - {company_name}', emailContent: 'Dear {borrower_name},\n\nThis is a reminder that your loan payment of {amount_due} is due on {due_date}.\n\nPlease make your payment promptly to avoid penalties.\n\nBest regards,\n{company_name}', createdAt: '2024-01-01T00:00:00Z' },
-        { id: 'rt2', name: 'Overdue Warning', category: 'overdue', channels: ['sms', 'whatsapp'], smsContent: 'URGENT: Dear {borrower_name}, your loan of {overdue_amount} is OVERDUE. Pay now to avoid penalties. - {company_name}', whatsappContent: '⚠️ *OVERDUE NOTICE*\n\nDear {borrower_name}, your loan payment of *{overdue_amount}* is overdue.\n\nPlease pay immediately to avoid additional penalties.\n\n{company_name}', emailSubject: '', emailContent: '', createdAt: '2024-01-01T00:00:00Z' },
-        { id: 'rt3', name: 'Payment Confirmation', category: 'confirmation', channels: ['sms', 'email'], smsContent: 'Payment received! {borrower_name}, TZS {amount_due} for loan has been recorded. Remaining: {remaining_balance}. - {company_name}', whatsappContent: '', emailSubject: 'Payment Confirmation - {company_name}', emailContent: 'Dear {borrower_name},\n\nWe have received your payment of {amount_due}.\n\nRemaining balance: {remaining_balance}\n\nThank you!\n\n{company_name}', createdAt: '2024-01-01T00:00:00Z' },
-        { id: 'rt4', name: 'Welcome New Borrower', category: 'welcome', channels: ['sms', 'whatsapp', 'email'], smsContent: 'Welcome {borrower_name}! Your account with {company_name} has been created. Contact us for any assistance. - {company_name}', whatsappContent: '🎉 Welcome {borrower_name}!\n\nYour account with *{company_name}* has been created successfully.\n\nWe look forward to serving you!\n\n{company_name}', emailSubject: 'Welcome to {company_name}', emailContent: 'Dear {borrower_name},\n\nWelcome to {company_name}! Your account has been created.\n\nFeel free to reach out for any assistance.\n\nBest regards,\n{company_name}', createdAt: '2024-01-01T00:00:00Z' }
+        { id: 'rt2', name: 'Overdue Warning', category: 'overdue', channels: ['sms', 'whatsapp'], smsContent: 'URGENT: Dear {borrower_name}, your loan of {overdue_amount} is OVERDUE. Pay now to avoid penalties. - {company_name}', whatsappContent: '⚠️ *OVERDUE NOTICE*\n\nDear {borrower_name}, your loan payment of *{overdue_amount}* is overdue.\n\nPlease pay immediately to avoid additional penalties.\n\n{company_name}', emailSubject: '', emailContent: '', createdAt: '2024-01-01T00:00:00Z' }
     ];
-    DB.apiKeys = [{ id: uid(), name: 'Production API Key', key: 'dlms_prod_' + uid(), status: 'active', created: '2024-01-01T00:00:00Z' }, { id: uid(), name: 'Test API Key', key: 'dlms_test_' + uid(), status: 'active', created: '2024-02-01T00:00:00Z' }];
-    DB.webhooks = [{ id: uid(), url: 'https://api.example.com/webhooks/dlms', events: ['loan.approved', 'payment.received'], active: true }];
     addAuditLog('system_init', 'System', 'System initialized with seed data');
     addNotification('System Initialized', 'DLMs-Pro has been set up with sample data', 'info');
 }
 
-// ★ FIX #1: PERSISTENT LOGIN — save and restore session
-function handleLogin(e) {
-    e.preventDefault();
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value;
-    const role = document.getElementById('role').value;
-    const branch = document.getElementById('branch').value;
-    const errEl = document.getElementById('loginError');
-    if (!username || !password || !role || !branch) { errEl.textContent = 'Please fill in all fields.'; errEl.classList.add('show'); return; }
-    const btn = document.getElementById('loginBtn');
-    const btnText = document.getElementById('loginBtnText');
-    const spinner = document.getElementById('loginSpinner');
-    btn.disabled = true; btnText.textContent = 'Signing In...'; spinner.style.display = 'inline-block';
-    setTimeout(() => {
-        APP.currentUser = { username, role, branch, name: username.charAt(0).toUpperCase() + username.slice(1) };
-        const users = DB.users; const ui = users.find(u => u.role === role);
-        if (ui) { APP.currentUser.name = ui.name; APP.currentUser.email = ui.email; APP.currentUser.id = ui.id; APP.currentUser.photo = ui.photo; APP.currentUser.phone = ui.phone; }
-        // ★ Save session to localStorage for persistence
-        localStorage.setItem('dlms_session', JSON.stringify(APP.currentUser));
-        document.getElementById('loginSection').classList.add('hidden');
-        document.getElementById('mainApp').classList.add('active');
-        document.getElementById('userName').textContent = APP.currentUser.name;
-        document.getElementById('profileName').textContent = APP.currentUser.name;
-        document.getElementById('userRole').textContent = getRoleLabel(role);
-        document.getElementById('userRole').className = 'role-badge ' + getRoleBadgeClass(role);
-        document.getElementById('profileRole').textContent = getRoleLabel(role);
-        updateUserHeaderPhoto();
-        addAuditLog('login', 'Authentication', `User ${username} logged in as ${getRoleLabel(role)}`);
-        addNotification('Welcome Back', `Signed in as ${getRoleLabel(role)}`, 'success');
-        btn.disabled = false; btnText.textContent = 'Sign In'; spinner.style.display = 'none';
-        errEl.classList.remove('show');
-        initDashboard(); updateNotificationBadge(); applyRoleVisibility(); applyTranslations();
-    }, 800);
+// ★ FIX #1: PERSISTENT LOGIN — Using Supabase Auth
+async function handleLogin(e) {
+  e.preventDefault();
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  const role = document.getElementById('role').value;
+  const branch = document.getElementById('branch').value;
+  const errEl = document.getElementById('loginError');
+  
+  if (!username || !password || !role || !branch) {
+    errEl.textContent = 'Please fill in all fields.';
+    errEl.classList.add('show');
+    return;
+  }
+  
+  const btn = document.getElementById('loginBtn');
+  const btnText = document.getElementById('loginBtnText');
+  const spinner = document.getElementById('loginSpinner');
+  btn.disabled = true;
+  btnText.textContent = 'Signing In...';
+  spinner.style.display = 'inline-block';
+
+  // Construct email for Supabase Auth (username + @dlms-pro.app)
+  const email = `${username}@dlms-pro.app`;
+
+  try {
+    if (!supabase) throw new Error('Supabase not connected. Check your internet.');
+
+    // 1. Sign in with Supabase Auth
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+
+    // 2. After successful login, fetch the user profile from our 'user_profiles' table
+    const { data: profile, error: profileError } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('id', data.user.id)
+      .single();
+
+    let userRole, userBranch, userName, userPhoto;
+    
+    if (profileError || !profile) {
+      // Profile missing – create it (should not happen if trigger works, but just in case)
+      const { error: insertError } = await supabase
+        .from('user_profiles')
+        .insert([{
+          id: data.user.id,
+          full_name: username,
+          username: username,
+          role: role,
+          branch_id: branch,
+          phone: ''
+        }]);
+      if (insertError) throw insertError;
+      userRole = role;
+      userBranch = branch;
+      userName = username;
+      userPhoto = null;
+    } else {
+      userRole = profile.role;
+      userBranch = profile.branch_id;
+      userName = profile.full_name || username;
+      userPhoto = profile.photo;
+    }
+
+    // 3. Store session info (only minimal – actual permissions enforced by RLS)
+    APP.currentUser = {
+      id: data.user.id,
+      username: username,
+      name: userName,
+      role: userRole,
+      branch: userBranch,
+      photo: userPhoto,
+      email: data.user.email
+    };
+
+    localStorage.setItem('dlms_session', JSON.stringify({
+      id: APP.currentUser.id,
+      role: APP.currentUser.role,
+      branch: APP.currentUser.branch
+    }));
+
+    applySessionUI();
+    addAuditLog('login', 'Authentication', `User ${username} logged in as ${userRole}`);
+    addNotification('Welcome Back', `Signed in as ${getRoleLabel(userRole)}`, 'success');
+    errEl.classList.remove('show');
+
+  } catch (err) {
+    console.error('Login error:', err);
+    errEl.textContent = err.message || 'Login failed. Check credentials and network.';
+    errEl.classList.add('show');
+  } finally {
+    btn.disabled = false;
+    btnText.textContent = 'Sign In';
+    spinner.style.display = 'none';
+  }
 }
 
-// ★ FIX #1: Restore session from localStorage
-function restoreSession() {
+// ★ Restore session from Supabase Auth or LocalStorage
+async function restoreSession() {
+    if (supabase) {
+        const { data } = await supabase.auth.getSession();
+        if (data.session) {
+            const meta = data.session.user.user_metadata || {};
+            APP.currentUser = localStorage.getItem('dlms_session') ? JSON.parse(localStorage.getItem('dlms_session')) : null;
+            if(APP.currentUser) return true;
+        }
+    }
+    // Fallback
     const saved = localStorage.getItem('dlms_session');
     if (!saved) return false;
     try {
         const session = JSON.parse(saved);
         if (!session || !session.username || !session.role) { localStorage.removeItem('dlms_session'); return false; }
         APP.currentUser = session;
-        // Verify user still exists
-        const userExists = DB.users.find(u => u.role === session.role || u.id === session.id);
-        if (!userExists && !session.username) { localStorage.removeItem('dlms_session'); return false; }
         return true;
     } catch { localStorage.removeItem('dlms_session'); return false; }
 }
@@ -6077,11 +6254,11 @@ function updateUserHeaderPhoto() {
     }
 }
 
-// ★ FIX #1: Clear session on explicit logout only
-function handleLogout() {
+async function handleLogout() {
     addAuditLog('logout', 'Authentication', `User ${APP.currentUser?.username} logged out`);
+    if (supabase) await supabase.auth.signOut();
     APP.currentUser = null;
-    localStorage.removeItem('dlms_session'); // Clear persistent session
+    localStorage.removeItem('dlms_session');
     document.getElementById('mainApp').classList.remove('active');
     document.getElementById('loginSection').classList.remove('hidden');
     document.getElementById('loginForm').reset();
@@ -6292,7 +6469,7 @@ function saveBorrower() {
     if (editId && APP.selectedBorrower?.id === editId) viewBorrowerDetails(editId);
 }
 
-function deleteBorrower(id) { showConfirm(t('delete') + ' ' + t('borrowers'), t('confirmDelete'), () => { DB.borrowers = DB.borrowers.filter(b => b.id !== id); addAuditLog('delete', 'Borrowers', `Deleted borrower ${id}`); showToast('Borrower deleted', 'warning'); document.getElementById('borrowerDetailsContainer').classList.remove('active'); renderBorrowersTable(); }); }
+function deleteBorrower(id) { showConfirm(t('delete') + ' ' + t('borrowers'), t('confirmDelete'), () => { DB.borrowers = DB.borrowers.filter(b => b.id !== id); DB._supabaseDelete('borrowers', id); addAuditLog('delete', 'Borrowers', `Deleted borrower ${id}`); showToast('Borrower deleted', 'warning'); document.getElementById('borrowerDetailsContainer').classList.remove('active'); renderBorrowersTable(); }); }
 
 // ==================== PAYMENT SCHEDULE ====================
 function generateSchedule() {
@@ -6379,7 +6556,7 @@ function saveLoan() {
     DB.loans = loans; closeModal('loanModal'); renderLoansTable(); if (APP.currentSection === 'dashboard') initDashboard();
 }
 
-function deleteLoan(id) { showConfirm(t('delete') + ' ' + t('loans'), t('confirmDelete'), () => { DB.loans = DB.loans.filter(l => l.id !== id); addAuditLog('delete', 'Loans', `Deleted loan ${id}`); showToast('Loan deleted', 'warning'); document.getElementById('loanDetailsContainer').classList.remove('active'); renderLoansTable(); }); }
+function deleteLoan(id) { showConfirm(t('delete') + ' ' + t('loans'), t('confirmDelete'), () => { DB.loans = DB.loans.filter(l => l.id !== id); DB._supabaseDelete('loans', id); addAuditLog('delete', 'Loans', `Deleted loan ${id}`); showToast('Loan deleted', 'warning'); document.getElementById('loanDetailsContainer').classList.remove('active'); renderLoansTable(); }); }
 
 // ==================== REPAYMENTS ====================
 function renderRepaymentsTable() {
@@ -6433,9 +6610,9 @@ function saveRepayment() {
     DB.repayments = repayments; closeModal('repaymentModal'); renderRepaymentsTable(); if (APP.currentSection === 'dashboard') initDashboard();
 }
 
-function deleteRepayment(id) { showConfirm(t('delete') + ' ' + t('repayments'), t('confirmDelete'), () => { DB.repayments = DB.repayments.filter(r => r.id !== id); addAuditLog('delete', 'Repayments', `Deleted repayment ${id}`); showToast('Repayment deleted', 'warning'); document.getElementById('repaymentDetailsContainer').classList.remove('active'); renderRepaymentsTable(); }); }
+function deleteRepayment(id) { showConfirm(t('delete') + ' ' + t('repayments'), t('confirmDelete'), () => { DB.repayments = DB.repayments.filter(r => r.id !== id); DB._supabaseDelete('repayments', id); addAuditLog('delete', 'Repayments', `Deleted repayment ${id}`); showToast('Repayment deleted', 'warning'); document.getElementById('repaymentDetailsContainer').classList.remove('active'); renderRepaymentsTable(); }); }
 
-// ★ FIX #2: LOAN APPROVAL — Admin and Manager ONLY
+// ==================== LOAN APPROVAL ====================
 function renderApprovalSection() {
     const role = APP.currentUser?.role;
     const canApprove = ['admin', 'manager'].includes(role);
@@ -6448,7 +6625,6 @@ function renderApprovalSection() {
         if (loans.length === 0) { container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-muted);">No loans in this category</div>'; return; }
         container.innerHTML = loans.map(l => {
             let actionBtns = `<button class="btn btn-sm btn-primary" onclick="viewApprovalDetail('${l.id}')"><i class="fas fa-eye"></i> ${t('view')}</button>`;
-            // ★ Only show approve/reject for admin and manager
             if (l.status === 'pending' && canApprove) {
                 actionBtns += `<button class="btn btn-sm btn-success" onclick="approveLoan('${l.id}')"><i class="fas fa-check"></i> ${t('approve')}</button><button class="btn btn-sm btn-danger" onclick="rejectLoan('${l.id}')"><i class="fas fa-times"></i> ${t('reject')}</button>`;
             } else if (l.status === 'pending' && !canApprove) {
@@ -6465,7 +6641,6 @@ function renderApprovalSection() {
     document.querySelector('#approvalHistoryTableBody').innerHTML = allHistory.map(l => `<tr><td>${escHtml(l.id)}</td><td>${escHtml(getBorrowerName(l.borrowerId))}</td><td>${formatCurrency(l.principal)}</td><td>${statusBadge(l.status)}</td><td>${formatDate(l.applicationDate)}</td></tr>`).join('');
 }
 
-// ★ FIX #2: Role check on approve/reject/disburse
 function approveLoan(id) {
     if (!['admin', 'manager'].includes(APP.currentUser?.role)) { showToast(t('approvalNotAuthorized'), 'error'); return; }
     const loans = DB.loans; const loan = loans.find(l => l.id === id);
@@ -6484,94 +6659,41 @@ function disburseLoan(id) {
     if (loan) { loan.status = 'active'; loan.disbursedAt = new Date().toISOString(); loan.disbursedBy = APP.currentUser.username; DB.loans = loans; addAuditLog('disburse', 'Loans', `Disbursed loan ${id}`); addNotification('Loan Disbursed', `Loan ${id} has been disbursed`, 'success'); showToast('Loan disbursed successfully', 'success'); renderApprovalSection(); }
 }
 
-// ★ FIX #5: Comprehensive Loan Approval VIEW
 function viewApprovalDetail(loanId) {
     const l = DB.loans.find(x => x.id === loanId); if (!l) return;
     const borrower = DB.borrowers.find(b => b.id === l.borrowerId);
     const canApprove = ['admin', 'manager'].includes(APP.currentUser?.role);
     const borrowerPhoto = borrower?.photo ? `<img src="${borrower.photo}" style="width:70px;height:70px;border-radius:50%;object-fit:cover;border:3px solid var(--accent);">` : `<div style="width:70px;height:70px;border-radius:50%;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:1.8rem;color:var(--accent);border:3px solid var(--accent);"><i class="fas fa-user"></i></div>`;
-
     document.getElementById('approvalDetailContent').innerHTML = `
-        <!-- ★ Borrower Info with Photo -->
         <div class="info-card" style="margin-bottom:14px;border-left:4px solid var(--clr-emerald);">
             <h4 style="margin-bottom:12px;display:flex;align-items:center;gap:8px;"><i class="fas fa-user" style="color:var(--accent);"></i> ${t('borrowerInfo')}</h4>
             <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;">
-                <div style="text-align:center;flex-shrink:0;">
-                    ${borrowerPhoto}
-                    <div style="margin-top:6px;font-weight:700;font-size:0.86rem;">${escHtml(borrower ? `${borrower.firstName} ${borrower.lastName}` : 'Unknown')}</div>
-                    <div style="font-size:0.72rem;color:var(--text-muted);">${escHtml(borrower?.idNumber || '')}</div>
-                </div>
+                <div style="text-align:center;flex-shrink:0;">${borrowerPhoto}<div style="margin-top:6px;font-weight:700;font-size:0.86rem;">${escHtml(borrower ? `${borrower.firstName} ${borrower.lastName}` : 'Unknown')}</div><div style="font-size:0.72rem;color:var(--text-muted);">${escHtml(borrower?.idNumber || '')}</div></div>
                 <div style="flex:1;min-width:200px;">
-                    <p><strong>Name:</strong> ${escHtml(borrower ? `${borrower.firstName} ${borrower.lastName}` : 'Unknown')}</p>
-                    <p><strong>Phone:</strong> ${escHtml(borrower?.phone || 'N/A')}</p>
-                    <p><strong>Email:</strong> ${escHtml(borrower?.email || 'N/A')}</p>
-                    <p><strong>Address:</strong> ${escHtml(borrower?.address || 'N/A')}</p>
-                    <p><strong>ID:</strong> ${escHtml(borrower?.idType || '')} — ${escHtml(borrower?.idNumber || '')}</p>
-                    <p><strong>Occupation:</strong> ${escHtml(borrower?.occupation || 'N/A')}</p>
-                    <p><strong>Monthly Income:</strong> ${formatCurrency(borrower?.income || 0)}</p>
-                    <p><strong>Credit Score:</strong> ${escHtml(borrower?.creditScore || 'N/A')}</p>
-                    <p><strong>Branch:</strong> ${borrower ? getBranchName(borrower.branch) : 'N/A'}</p>
-                    <p><strong>Status:</strong> ${statusBadge(borrower?.status || 'unknown')}</p>
+                    <p><strong>Name:</strong> ${escHtml(borrower ? `${borrower.firstName} ${borrower.lastName}` : 'Unknown')}</p><p><strong>Phone:</strong> ${escHtml(borrower?.phone || 'N/A')}</p><p><strong>Email:</strong> ${escHtml(borrower?.email || 'N/A')}</p><p><strong>Address:</strong> ${escHtml(borrower?.address || 'N/A')}</p><p><strong>ID:</strong> ${escHtml(borrower?.idType || '')} — ${escHtml(borrower?.idNumber || '')}</p><p><strong>Occupation:</strong> ${escHtml(borrower?.occupation || 'N/A')}</p><p><strong>Monthly Income:</strong> ${formatCurrency(borrower?.income || 0)}</p><p><strong>Credit Score:</strong> ${escHtml(borrower?.creditScore || 'N/A')}</p><p><strong>Branch:</strong> ${borrower ? getBranchName(borrower.branch) : 'N/A'}</p><p><strong>Status:</strong> ${statusBadge(borrower?.status || 'unknown')}</p>
                 </div>
             </div>
         </div>
-
-        <!-- ★ Guarantor Info -->
         <div class="info-card" style="margin-bottom:14px;border-left:4px solid var(--clr-blue);">
             <h4 style="margin-bottom:10px;display:flex;align-items:center;gap:8px;"><i class="fas fa-user-friends" style="color:var(--clr-blue);"></i> ${t('guarantorInfo')}</h4>
-            <p><strong>Guarantor Name:</strong> ${escHtml(borrower?.guarantor || l.guarantor || 'N/A')}</p>
-            <p><strong>Guarantor Phone:</strong> ${escHtml(borrower?.guarantorPhone || 'N/A')}</p>
+            <p><strong>Guarantor Name:</strong> ${escHtml(borrower?.guarantor || l.guarantor || 'N/A')}</p><p><strong>Guarantor Phone:</strong> ${escHtml(borrower?.guarantorPhone || 'N/A')}</p>
         </div>
-
-        <!-- ★ Loan Info -->
         <div class="info-card" style="margin-bottom:14px;border-left:4px solid var(--clr-violet);">
             <h4 style="margin-bottom:10px;display:flex;align-items:center;gap:8px;"><i class="fas fa-hand-holding-usd" style="color:var(--clr-violet);"></i> ${t('loanInfo')}</h4>
             <div class="info-grid" style="margin-bottom:0;">
-                <div style="padding:0;">
-                    <p><strong>Loan ID:</strong> ${escHtml(l.id)}</p>
-                    <p><strong>Principal:</strong> ${formatCurrency(l.principal)}</p>
-                    <p><strong>Interest Rate:</strong> ${l.interestRate}% (${l.interestType || 'flat'})</p>
-                    <p><strong>Term:</strong> ${l.term} months</p>
-                    <p><strong>Total with Interest:</strong> ${formatCurrency(l.totalAmount)}</p>
-                    <p><strong>Interest Amount:</strong> ${formatCurrency(Number(l.totalAmount) - Number(l.principal))}</p>
-                </div>
-                <div style="padding:0;">
-                    <p><strong>Purpose:</strong> ${escHtml((l.purpose || '').replace(/_/g, ' '))}</p>
-                    <p><strong>Collateral:</strong> ${escHtml(l.collateral || 'N/A')}</p>
-                    <p><strong>Frequency:</strong> ${getPaymentFrequencyLabel(l.frequency)}</p>
-                    <p><strong>Applied:</strong> ${formatDate(l.applicationDate)}</p>
-                    <p><strong>Due Date:</strong> ${formatDate(l.dueDate)}</p>
-                    <p><strong>Status:</strong> ${statusBadge(l.status)}</p>
-                </div>
+                <div style="padding:0;"><p><strong>Loan ID:</strong> ${escHtml(l.id)}</p><p><strong>Principal:</strong> ${formatCurrency(l.principal)}</p><p><strong>Interest Rate:</strong> ${l.interestRate}% (${l.interestType || 'flat'})</p><p><strong>Term:</strong> ${l.term} months</p><p><strong>Total with Interest:</strong> ${formatCurrency(l.totalAmount)}</p><p><strong>Interest Amount:</strong> ${formatCurrency(Number(l.totalAmount) - Number(l.principal))}</p></div>
+                <div style="padding:0;"><p><strong>Purpose:</strong> ${escHtml((l.purpose || '').replace(/_/g, ' '))}</p><p><strong>Collateral:</strong> ${escHtml(l.collateral || 'N/A')}</p><p><strong>Frequency:</strong> ${getPaymentFrequencyLabel(l.frequency)}</p><p><strong>Applied:</strong> ${formatDate(l.applicationDate)}</p><p><strong>Due Date:</strong> ${formatDate(l.dueDate)}</p><p><strong>Status:</strong> ${statusBadge(l.status)}</p></div>
             </div>
             <p style="margin-top:8px;"><strong>Notes:</strong> ${escHtml(l.notes || 'No notes')}</p>
         </div>
-
-        <!-- ★ Documents -->
-        <div class="info-card" style="margin-bottom:14px;border-left:4px solid var(--clr-amber);">
-            <h4 style="margin-bottom:10px;display:flex;align-items:center;gap:8px;"><i class="fas fa-file-alt" style="color:var(--clr-amber);"></i> ${t('loanDocuments')}</h4>
-            <p style="color:var(--text-muted);font-size:0.84rem;">${l.collateral ? `Collateral: ${escHtml(l.collateral)}` : 'No documents uploaded yet'}</p>
-        </div>
-
-        <!-- ★ Action Buttons (only for admin/manager) -->
-        ${l.status === 'pending' && canApprove ? `
-        <div style="display:flex;gap:10px;margin-top:16px;padding:14px;background:var(--accent-dim);border-radius:var(--radius-md);border:1px solid rgba(0,210,150,0.2);">
-            <button class="btn btn-success" onclick="approveLoan('${l.id}');closeModal('approvalDetailModal');"><i class="fas fa-check"></i> ${t('approve')}</button>
-            <button class="btn btn-danger" onclick="rejectLoan('${l.id}');closeModal('approvalDetailModal');"><i class="fas fa-times"></i> ${t('reject')}</button>
-        </div>` : ''}
-        ${l.status === 'pending' && !canApprove ? `
-        <div style="margin-top:16px;padding:14px;background:var(--danger-dim);border-radius:var(--radius-md);border:1px solid rgba(255,71,87,0.2);color:var(--danger);font-size:0.84rem;text-align:center;">
-            <i class="fas fa-lock"></i> ${t('approvalNotAuthorized')}
-        </div>` : ''}
-        ${l.status === 'approved' && canApprove ? `
-        <div style="display:flex;gap:10px;margin-top:16px;">
-            <button class="btn btn-success" onclick="disburseLoan('${l.id}');closeModal('approvalDetailModal');"><i class="fas fa-money-bill-wave"></i> ${t('disburse')}</button>
-        </div>` : ''}
+        ${l.status === 'pending' && canApprove ? `<div style="display:flex;gap:10px;margin-top:16px;padding:14px;background:var(--accent-dim);border-radius:var(--radius-md);border:1px solid rgba(0,210,150,0.2);"><button class="btn btn-success" onclick="approveLoan('${l.id}');closeModal('approvalDetailModal');"><i class="fas fa-check"></i> ${t('approve')}</button><button class="btn btn-danger" onclick="rejectLoan('${l.id}');closeModal('approvalDetailModal');"><i class="fas fa-times"></i> ${t('reject')}</button></div>` : ''}
+        ${l.status === 'pending' && !canApprove ? `<div style="margin-top:16px;padding:14px;background:var(--danger-dim);border-radius:var(--radius-md);border:1px solid rgba(255,71,87,0.2);color:var(--danger);font-size:0.84rem;text-align:center;"><i class="fas fa-lock"></i> ${t('approvalNotAuthorized')}</div>` : ''}
+        ${l.status === 'approved' && canApprove ? `<div style="display:flex;gap:10px;margin-top:16px;"><button class="btn btn-success" onclick="disburseLoan('${l.id}');closeModal('approvalDetailModal');"><i class="fas fa-money-bill-wave"></i> ${t('disburse')}</button></div>` : ''}
     `;
     openModal('approvalDetailModal');
 }
 
-// ==================== ★ FIX #4: BRANCHES — Staff with Photo ====================
+// ==================== BRANCHES ====================
 function renderBranches() {
     const container = document.getElementById('branchesContainer');
     container.innerHTML = DB.branches.map(b => {
@@ -6592,22 +6714,11 @@ function viewBranchDetails(branchId) {
     document.getElementById('branchDetailContent').innerHTML = `
         <div class="branch-info-section"><h4><i class="fas fa-info-circle"></i> Branch Information</h4><div class="branch-info-item"><i class="fas fa-building"></i> ${escHtml(b.name)} (${escHtml(b.code)})</div><div class="branch-info-item"><i class="fas fa-map-marker-alt"></i> ${escHtml(b.city || 'N/A')}, ${escHtml(b.region || 'N/A')}</div><div class="branch-info-item"><i class="fas fa-phone"></i> ${escHtml(b.phone || 'N/A')}</div><div class="branch-info-item"><i class="fas fa-envelope"></i> ${escHtml(b.email || 'N/A')}</div><div class="branch-info-item"><i class="fas fa-user-tie"></i> Manager: ${escHtml(b.manager || 'N/A')}</div><div class="branch-info-item"><i class="fas fa-toggle-on"></i> Status: ${statusBadge(b.status)}</div></div>
         <div class="branch-stats-section"><h4><i class="fas fa-chart-bar"></i> Branch Statistics</h4><div class="branch-stats-grid"><div class="branch-stat-item"><div class="branch-stat-value">${borrowers.length}</div><div class="branch-stat-label">Borrowers</div></div><div class="branch-stat-item"><div class="branch-stat-value">${loanIds.length}</div><div class="branch-stat-label">Loans</div></div><div class="branch-stat-item"><div class="branch-stat-value">${formatCurrency(totalDisbursed)}</div><div class="branch-stat-label">Disbursed</div></div><div class="branch-stat-item"><div class="branch-stat-value">${formatCurrency(totalRepaid)}</div><div class="branch-stat-label">Collected</div></div></div></div>
-        <div class="branch-staff-section">
-            <h4><i class="fas fa-users"></i> Staff Members (${(b.staff || []).length})
-                <button class="btn btn-primary btn-sm" style="margin-left:10px;" onclick="openStaffMemberModal()"><i class="fas fa-user-plus"></i> ${t('addStaff')}</button>
-            </h4>
-            <div class="branch-staff-grid">
-                ${(b.staff || []).map(s => `<div class="staff-member-card">
-                    <div class="staff-photo-placeholder">${s.photo ? `<img src="${s.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : '<i class="fas fa-user"></i>'}</div>
-                    <div><div class="staff-name">${escHtml(s.name)}</div><div class="staff-role">${escHtml(s.position)}</div><div class="staff-contact">${escHtml(s.phone || '')} ${s.email ? '| ' + escHtml(s.email) : ''}</div></div>
-                </div>`).join('') || '<p style="color:var(--text-muted);font-size:0.84rem;">No staff members added yet</p>'}
-            </div>
-        </div>`;
+        <div class="branch-staff-section"><h4><i class="fas fa-users"></i> Staff Members (${(b.staff || []).length}) <button class="btn btn-primary btn-sm" style="margin-left:10px;" onclick="openStaffMemberModal()"><i class="fas fa-user-plus"></i> ${t('addStaff')}</button></h4><div class="branch-staff-grid">${(b.staff || []).map(s => `<div class="staff-member-card"><div class="staff-photo-placeholder">${s.photo ? `<img src="${s.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : '<i class="fas fa-user"></i>'}</div><div><div class="staff-name">${escHtml(s.name)}</div><div class="staff-role">${escHtml(s.position)}</div><div class="staff-contact">${escHtml(s.phone || '')} ${s.email ? '| ' + escHtml(s.email) : ''}</div></div></div>`).join('') || '<p style="color:var(--text-muted);font-size:0.84rem;">No staff members added yet</p>'}</div></div>`;
     document.getElementById('branchDetailTitle').textContent = b.name;
     openModal('branchDetailModal');
 }
 
-// ★ FIX #4: Staff member modal with photo upload
 function openStaffMemberModal() { _tempStaffPhoto = null; document.getElementById('staffMemberForm').reset(); document.getElementById('staffPhotoPreview').innerHTML = '<i class="fas fa-user"></i>'; openModal('staffMemberModal'); }
 
 function saveStaffMember() {
@@ -6641,20 +6752,10 @@ function savePenalty() { const loanId = document.getElementById('penaltyLoan').v
 
 function markPenaltyPaid(id) { const penalties = DB.penalties; const p = penalties.find(x => x.id === id); if (p) { p.status = 'paid'; DB.penalties = penalties; showToast('Penalty marked as paid', 'success'); renderPenalties(); } }
 function waivePenalty(id) { const penalties = DB.penalties; const p = penalties.find(x => x.id === id); if (p) { p.status = 'waived'; DB.penalties = penalties; showToast('Penalty waived', 'info'); renderPenalties(); } }
-function deletePenalty(id) { DB.penalties = DB.penalties.filter(p => p.id !== id); showToast('Penalty deleted', 'warning'); renderPenalties(); }
+function deletePenalty(id) { DB.penalties = DB.penalties.filter(p => p.id !== id); DB._supabaseDelete('penalties', id); showToast('Penalty deleted', 'warning'); renderPenalties(); }
 
 // ==================== ADMIN PANEL ====================
-function renderAdminPanel() { const users = DB.users; document.getElementById('totalUsersDisplay').
-textContent = users.length; document.getElementById('onlineUsersDisplay')
-.textContent = 1; document.getElementById('activeUsersCount')
-.textContent = users.filter(u => u.status === 'active').length; document.getElementById('totalBranchesDisplay').textContent = DB.branches.filter(b => b.status === 'active').length;
-    document.getElementById('auditCountDisplay').textContent = DB.auditLog.length;
-    const sizeKB = Math.round(JSON.stringify(localStorage).length / 1024);
-    document.getElementById('storageUsed').textContent = sizeKB > 1024 ? (sizeKB / 1024).toFixed(1) + ' MB' : sizeKB + ' KB';
-    const lastBackup = localStorage.getItem('dlms_lastBackup');
-    document.getElementById('lastBackup').textContent = lastBackup ? formatDate(lastBackup) : 'Never';
-    renderUsersTable(); renderAuditTable(); renderApiKeys(); renderWebhooks();
-}
+function renderAdminPanel() { const users = DB.users; document.getElementById('totalUsersDisplay').textContent = users.length; document.getElementById('onlineUsersDisplay').textContent = 1; document.getElementById('activeUsersCount').textContent = users.filter(u => u.status === 'active').length; document.getElementById('totalBranchesDisplay').textContent = DB.branches.filter(b => b.status === 'active').length; document.getElementById('auditCountDisplay').textContent = DB.auditLog.length; const sizeKB = Math.round(JSON.stringify(localStorage).length / 1024); document.getElementById('storageUsed').textContent = sizeKB > 1024 ? (sizeKB / 1024).toFixed(1) + ' MB' : sizeKB + ' KB'; const lastBackup = localStorage.getItem('dlms_lastBackup'); document.getElementById('lastBackup').textContent = lastBackup ? formatDate(lastBackup) : 'Never'; renderUsersTable(); renderAuditTable(); renderApiKeys(); renderWebhooks(); }
 
 function renderUsersTable() {
     document.querySelector('#usersTable tbody').innerHTML = DB.users.map(u => `<tr><td style="display:flex;align-items:center;gap:8px;">${renderPhoto(u.photo, 28, '0.7rem')}<span style="font-weight:600;">${escHtml(u.name)}</span></td><td>${escHtml(u.username)}</td><td><span class="role-badge ${getRoleBadgeClass(u.role)}">${getRoleLabel(u.role)}</span></td><td>${getBranchName(u.branch)}</td><td>${formatDateTime(u.lastLogin)}</td><td>${statusBadge(u.status)}</td><td><div class="action-buttons"><button class="btn btn-sm btn-secondary" onclick="editUser('${u.id}')"><i class="fas fa-edit"></i></button><button class="btn btn-sm btn-danger" onclick="toggleUserStatus('${u.id}')"><i class="fas fa-${u.status === 'active' ? 'ban' : 'check'}"></i></button></div></td></tr>`).join('');
@@ -6681,21 +6782,18 @@ function renderWebhooks() { document.getElementById('webhooksList').innerHTML = 
 function copyToClipboard(text) { navigator.clipboard?.writeText(text).then(() => showToast('Copied to clipboard', 'success')).catch(() => showToast('Copy failed', 'error')); }
 function revokeApiKey(id) { DB.apiKeys = DB.apiKeys.filter(k => k.id !== id); renderApiKeys(); showToast('API key revoked', 'warning'); }
 function toggleWebhook(id) { const w = DB.webhooks.find(x => x.id === id); if (w) { w.active = !w.active; DB.webhooks = DB.webhooks; } }
+
 function generateNewApiKey() { const keys = DB.apiKeys; keys.push({ id: uid(), name: `API Key ${keys.length + 1}`, key: 'dlms_' + uid(), status: 'active', created: new Date().toISOString() }); DB.apiKeys = keys; renderApiKeys(); showToast('New API key generated', 'success'); }
 
-// ==================== ★ FIX #3: ANALYTICS — NET PROFIT = INTEREST + PROCESSING FEES ====================
+// ==================== ANALYTICS ====================
 function initAnalytics() {
     const loans = DB.loans, repayments = DB.repayments, penalties = DB.penalties;
     const totalPortfolio = loans.reduce((s, l) => s + Number(l.totalAmount), 0);
-    
-    // ★ FIX #3: Calculate Total Interest and Processing Fees properly for Net Profit
     const totalInterest = loans.reduce((s, l) => s + calcInterestAmount(Number(l.principal), Number(l.interestRate), l.interestType, Number(l.term)), 0);
-    const totalProcessingFees = loans.reduce((s, l) => s + Number(l.processingFee || 0), 0); // From seed data & loan creation
+    const totalProcessingFees = loans.reduce((s, l) => s + Number(l.processingFee || 0), 0); 
     const totalPenaltiesCollected = penalties.filter(p => p.status === 'paid').reduce((s, p) => s + Number(p.amount), 0);
     const totalRepaid = repayments.reduce((s, r) => s + Number(r.amount), 0);
-    
-    // ★ NET PROFIT = Total Interest + Total Processing Fees
-    const netProfit = totalInterest + totalProcessingFees;
+    const netProfit = totalInterest + totalProcessingFees; 
     const efficiency = totalPortfolio > 0 ? Math.round((totalRepaid / totalPortfolio) * 100) : 0;
     
     document.getElementById('portfolioValue').textContent = formatCurrency(totalPortfolio);
@@ -6729,7 +6827,7 @@ function initAnalyticsCharts() {
     if (ctx4) { const bn = DB.branches.slice(0, 5).map(b => b.code); const bl = DB.branches.slice(0, 5).map(b => { const bb = DB.borrowers.filter(br => br.branch === b.id).map(br => br.id); return DB.loans.filter(l => bb.includes(l.borrowerId)).reduce((s, l) => s + Number(l.principal), 0); }); APP.charts.branchComp = new Chart(ctx4, { type: 'bar', data: { labels: bn, datasets: [{ label: 'Loan Volume', data: bl, backgroundColor: ['#00d296', '#4facfe', '#a855f7', '#ffc048', '#ff4757'], borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#5a6a80', callback: v => (v / 1000) + 'K' }, grid: { color: 'rgba(255,255,255,0.04)' } }, y: { ticks: { color: '#a0aec0' }, grid: { display: false } } } } }); }
 }
 
-// ==================== ★ FIX #6: DAILY REPORT — PRINT & SHARE ====================
+// ==================== DAILY REPORT ====================
 function initDailyReport() { document.getElementById('reportDate').value = todayStr(); calculateDailyReport(); }
 
 function calculateDailyReport() {
@@ -6739,7 +6837,6 @@ function calculateDailyReport() {
     const dayPenalties = DB.penalties.filter(p => p.createdAt?.startsWith(date) && p.status === 'paid');
     const dayExpenses = DB.expenses.filter(e => e.date === date);
     const otherSources = DB.otherSources.filter(s => s.date === date);
-    
     const loanDisbursed = dayLoans.reduce((s, l) => s + Number(l.principal), 0);
     const amountRepaid = dayRepayments.reduce((s, r) => s + Number(r.amount), 0);
     const penaltiesCollected = dayPenalties.reduce((s, p) => s + Number(p.amount), 0);
@@ -6748,7 +6845,6 @@ function calculateDailyReport() {
     const openingBalance = Number(localStorage.getItem('dlms_openingBalance_' + date) || 0);
     const processingFees = Number(localStorage.getItem('dlms_processingFee_' + date) || 0);
     const closingBalance = openingBalance - loanDisbursed + amountRepaid + penaltiesCollected + processingFees + otherIncome - totalExpenses;
-
     document.getElementById('openingBalanceDisplay').textContent = formatCurrency(openingBalance);
     document.getElementById('dailyLoanDisbursed').textContent = formatCurrency(loanDisbursed);
     document.getElementById('dailyAmountRepaid').textContent = formatCurrency(amountRepaid);
@@ -6758,13 +6854,11 @@ function calculateDailyReport() {
     document.getElementById('dailyExpenses').textContent = formatCurrency(totalExpenses);
     document.getElementById('closingBalanceDisplay').textContent = formatCurrency(closingBalance);
     document.getElementById('reportGenerationTime').textContent = formatDateTime(new Date().toISOString());
-
     document.querySelector('#dailyLoansTable tbody').innerHTML = dayLoans.map(l => `<tr><td>${escHtml(l.id)}</td><td>${escHtml(getBorrowerName(l.borrowerId))}</td><td>${formatCurrency(l.principal)}</td><td>${l.interestRate}%</td><td>0</td><td>${formatCurrency(l.totalAmount)}</td><td>${escHtml((l.purpose || '').replace(/_/g, ' '))}</td><td>${formatDateTime(l.createdAt)}</td><td><button class="btn btn-sm btn-secondary"><i class="fas fa-eye"></i></button></td></tr>`).join('') || '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);">No loans disbursed today</td></tr>';
     document.querySelector('#dailyRepaymentsTable tbody').innerHTML = dayRepayments.map(r => `<tr><td>${escHtml(r.id)}</td><td>${escHtml(r.loanId)}</td><td>${escHtml(getBorrowerName(DB.loans.find(l => l.id === r.loanId)?.borrowerId))}</td><td>${formatCurrency(r.amount)}</td><td>${escHtml(r.method)}</td><td>${formatDateTime(r.createdAt)}</td><td><button class="btn btn-sm btn-secondary" onclick="viewRepaymentDetails('${r.id}')"><i class="fas fa-eye"></i></button></td></tr>`).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);">No repayments today</td></tr>';
     document.getElementById('expensesTableBody').innerHTML = dayExpenses.map(e => `<tr><td>${escHtml(e.description)}</td><td>${formatCurrency(e.amount)}</td><td>${escHtml(e.category)}</td><td>${formatDate(e.date)}</td><td><button class="btn btn-sm btn-danger" onclick="deleteExpense('${e.id}')"><i class="fas fa-trash"></i></button></td></tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);">No expenses today</td></tr>';
     document.querySelector('#dailyPenaltiesTable tbody').innerHTML = dayPenalties.map(p => `<tr><td>${escHtml(p.id)}</td><td>${escHtml(p.loanId)}</td><td>${escHtml(getBorrowerName(p.borrowerId))}</td><td>${escHtml(p.type)}</td><td>${formatCurrency(p.amount)}</td><td>${formatDateTime(p.createdAt)}</td><td><button class="btn btn-sm btn-secondary"><i class="fas fa-eye"></i></button></td></tr>`).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);">No penalties today</td></tr>';
     document.getElementById('otherSourcesList').innerHTML = otherSources.map(o => `<div class="other-source-item"><div><div class="other-source-item-name">${escHtml(o.name)}</div><div class="other-source-item-desc">${escHtml(o.description || '')}</div></div><div class="other-source-item-amount">${formatCurrency(o.amount)}</div></div>`).join('') || '<div style="padding:12px;text-align:center;color:var(--text-muted);font-size:0.82rem;">No other income sources</div>';
-
     initFinancialSummaryChart(loanDisbursed, amountRepaid, penaltiesCollected, processingFees, otherIncome, totalExpenses);
 }
 
@@ -6778,9 +6872,9 @@ function saveOpeningBalance() { const date = document.getElementById('reportDate
 function saveProcessingFee() { const date = document.getElementById('reportDate')?.value || todayStr(); localStorage.setItem('dlms_processingFee_' + date, Number(document.getElementById('processingFeeInput').value)); showToast('Processing fee saved', 'success'); calculateDailyReport(); }
 function saveOtherSource() { const name = document.getElementById('sourceName').value.trim(), description = document.getElementById('sourceDescription').value.trim(), amount = Number(document.getElementById('sourceAmount').value), date = document.getElementById('reportDate')?.value || todayStr(); if (!name || !amount) { showToast('Name and amount are required', 'error'); return; } const sources = DB.otherSources; sources.push({ id: uid(), name, description, amount, date, createdAt: new Date().toISOString() }); DB.otherSources = sources; closeModal('otherSourceModal'); showToast('Income source added', 'success'); calculateDailyReport(); }
 function saveExpense() { const category = document.getElementById('expenseCategoryModal').value, description = document.getElementById('expenseDescriptionModal').value.trim(), amount = Number(document.getElementById('expenseAmountModal').value), date = document.getElementById('expenseDateModal').value || todayStr(); if (!category || !description || !amount) { showToast('Please fill all required fields', 'error'); return; } const expenses = DB.expenses; expenses.push({ id: uid(), category, description, amount, date, createdAt: new Date().toISOString() }); DB.expenses = expenses; closeModal('expenseModal'); addAuditLog('create', 'Expenses', `Recorded expense: ${description} - ${formatCurrency(amount)}`); showToast('Expense recorded', 'success'); calculateDailyReport(); }
-function deleteExpense(id) { DB.expenses = DB.expenses.filter(e => e.id !== id); showToast('Expense deleted', 'warning'); calculateDailyReport(); }
+function deleteExpense(id) { DB.expenses = DB.expenses.filter(e => e.id !== id); DB._supabaseDelete('expenses', id); showToast('Expense deleted', 'warning'); calculateDailyReport(); }
 
-// ==================== ★ FIX #7: REPORTS — PRINT & SHARE ====================
+// ==================== REPORTS ====================
 function renderReports() { /* Placeholder until generate is clicked */ }
 
 function generateReport() {
@@ -6790,7 +6884,6 @@ function generateReport() {
     let loans = DB.loans;
     if (branch) { const bBorrowers = DB.borrowers.filter(b => b.branch === branch).map(b => b.id); loans = loans.filter(l => bBorrowers.includes(l.borrowerId)); }
     let html = '';
-    
     if (type === 'loan_portfolio') {
         const totalPrincipal = loans.reduce((s, l) => s + Number(l.principal), 0), totalWithInterest = loans.reduce((s, l) => s + Number(l.totalAmount), 0), totalInterest = totalWithInterest - totalPrincipal, totalRepaid = loans.reduce((s, l) => s + getLoanPaid(l), 0), outstanding = totalWithInterest - totalRepaid;
         const active = loans.filter(l => ['active', 'disbursed'].includes(l.status)).length, overdue = loans.filter(l => l.status === 'overdue').length, completed = loans.filter(l => l.status === 'completed').length, pending = loans.filter(l => l.status === 'pending').length;
@@ -6809,19 +6902,12 @@ function generateReport() {
         const repayments = DB.repayments; const totalAmount = repayments.reduce((s, r) => s + Number(r.amount), 0); const methodCounts = {}; repayments.forEach(r => { methodCounts[r.method] = (methodCounts[r.method] || 0) + Number(r.amount); });
         html = `<div class="table-responsive"><table><thead><tr><th>Method</th><th>Count</th><th>Amount</th></tr></thead><tbody>${Object.entries(methodCounts).map(([m, a]) => `<tr><td style="font-weight:600;text-transform:capitalize;">${escHtml(m.replace('_', ' '))}</td><td>${repayments.filter(r=>r.method===m).length}</td><td>${formatCurrency(a)}</td></tr>`).join('')}</tbody></table></div>`;
     }
-    
-    // ★ FIX #7: Add Print and Share Buttons to the generated report
-    html += `<div style="display:flex;gap:8px;margin-top:24px;padding-top:16px;border-top:1px solid var(--border-color);flex-wrap:wrap;">
-        <button class="btn btn-primary" onclick="printReportContent('${type.replace(/_/g, ' ')} Report', '#reportsDisplay')"><i class="fas fa-print"></i> ${t('printReport')}</button>
-        <button class="btn btn-success" onclick="shareViaWhatsApp(buildReportText())"><i class="fab fa-whatsapp"></i> ${t('shareViaWhatsapp')}</button>
-        <button class="btn btn-info" onclick="shareViaEmail('${t('emailSubject')} - ${type}', buildReportText())"><i class="fas fa-envelope"></i> ${t('shareViaEmail')}</button>
-    </div>`;
-    
+    html += `<div style="display:flex;gap:8px;margin-top:24px;padding-top:16px;border-top:1px solid var(--border-color);flex-wrap:wrap;"><button class="btn btn-primary" onclick="printReportContent('${type.replace(/_/g, ' ')} Report', '#reportsDisplay')"><i class="fas fa-print"></i> ${t('printReport')}</button><button class="btn btn-success" onclick="shareViaWhatsApp(buildReportText())"><i class="fab fa-whatsapp"></i> ${t('shareViaWhatsapp')}</button><button class="btn btn-info" onclick="shareViaEmail('${t('emailSubject')} - ${type}', buildReportText())"><i class="fas fa-envelope"></i> ${t('shareViaEmail')}</button></div>`;
     display.innerHTML = html || '<div style="text-align:center;padding:48px;color:var(--text-muted);">No data available for this report</div>';
     addAuditLog('export', 'Reports', `Generated ${type} report`);
 }
 
-function exportReport() { exportData('excel'); } // Changed to Excel export for data, print for visual
+function exportReport() { exportData('excel'); }
 
 // ==================== REMINDERS ====================
 function initReminders() {
@@ -7046,7 +7132,6 @@ function initEventListeners() {
     document.getElementById('saveBranchBtn').addEventListener('click', saveBranch);
     document.getElementById('editBranchFromDetail').addEventListener('click', () => { if (APP.selectedBranch) { closeModal('branchDetailModal'); document.getElementById('branchModalTitle').textContent = 'Edit Branch'; document.getElementById('branchId').value = APP.selectedBranch.id; document.getElementById('branchName').value = APP.selectedBranch.name; document.getElementById('branchCode').value = APP.selectedBranch.code; document.getElementById('branchCity').value = APP.selectedBranch.city || ''; document.getElementById('branchRegion').value = APP.selectedBranch.region || ''; document.getElementById('branchPhone').value = APP.selectedBranch.phone || ''; document.getElementById('branchEmail').value = APP.selectedBranch.email || ''; document.getElementById('branchManager').value = APP.selectedBranch.manager || ''; document.getElementById('branchStatus').value = APP.selectedBranch.status || 'active'; openModal('branchModal'); } });
     document.getElementById('saveStaffMemberBtn').addEventListener('click', saveStaffMember);
-    // ★ Staff Photo Upload
     document.getElementById('staffPhotoPreview').addEventListener('click', () => document.getElementById('staffPhotoInput').click());
     document.getElementById('staffPhotoInput').addEventListener('change', function(e) { const file = e.target.files[0]; if (!file) return; if (file.size > 500000) { showToast('Photo must be under 500KB', 'warning'); return; } const reader = new FileReader(); reader.onload = function(ev) { _tempStaffPhoto = ev.target.result; document.getElementById('staffPhotoPreview').innerHTML = `<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`; }; reader.readAsDataURL(file); });
     
@@ -7078,7 +7163,7 @@ function initEventListeners() {
     document.getElementById('importDataBtn').addEventListener('click', () => document.getElementById('restoreFileInput').click());
     document.getElementById('resetUserFilter').addEventListener('click', () => { ['userSearchInput','userRoleFilter','userStatusFilter'].forEach(id => document.getElementById(id).value = ''); renderUsersTable(); });
     
-    // ★ FIX #6: Daily Report - Print (not download) + Share buttons
+    // Daily Report
     document.getElementById('refreshDailyReportBtn').addEventListener('click', calculateDailyReport);
     document.getElementById('reportDate').addEventListener('change', calculateDailyReport);
     document.getElementById('saveOpeningBalanceBtn').addEventListener('click', saveOpeningBalance);
@@ -7089,24 +7174,16 @@ function initEventListeners() {
     document.getElementById('saveOtherSourceBtn').addEventListener('click', saveOtherSource);
     document.getElementById('addExpenseBtn').addEventListener('click', () => { document.getElementById('expenseFormModal').reset(); document.getElementById('expenseDateModal').value = todayStr(); openModal('expenseModal'); });
     document.getElementById('saveExpenseModalBtn').addEventListener('click', saveExpense);
-    
-    // ★ FIX #6: Print daily report directly, share via WA/Email
     document.getElementById('printDailyReportBtn').addEventListener('click', () => printReportContent(t('dailyFinancialReport'), '#dailyReport'));
-    document.getElementById('exportDailyReportBtn').addEventListener('click', () => printReportContent(t('dailyFinancialReport'), '#dailyReport')); // Changed to print instead of pdf
+    document.getElementById('exportDailyReportBtn').addEventListener('click', () => printReportContent(t('dailyFinancialReport'), '#dailyReport')); 
     document.getElementById('emailDailyReportBtn').addEventListener('click', () => shareViaEmail(t('dailyFinancialReport'), buildDailyReportText()));
-    // Add dynamic WhatsApp share button if it doesn't exist
     const dailyFooter = document.querySelector('.daily-report-footer-actions .daily-report-export-actions');
-    if (dailyFooter && !document.getElementById('shareDailyWA')) {
-        const waBtn = document.createElement('button'); waBtn.id = 'shareDailyWA'; waBtn.className = 'btn btn-success'; waBtn.innerHTML = '<i class="fab fa-whatsapp"></i> WhatsApp';
-        waBtn.onclick = () => shareViaWhatsApp(buildDailyReportText());
-        dailyFooter.appendChild(waBtn);
-    }
-    
+    if (dailyFooter && !document.getElementById('shareDailyWA')) { const waBtn = document.createElement('button'); waBtn.id = 'shareDailyWA'; waBtn.className = 'btn btn-success'; waBtn.innerHTML = '<i class="fab fa-whatsapp"></i> WhatsApp'; waBtn.onclick = () => shareViaWhatsApp(buildDailyReportText()); dailyFooter.appendChild(waBtn); }
     document.querySelectorAll('.daily-report-tab').forEach(tab => tab.addEventListener('click', () => { document.querySelectorAll('.daily-report-tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.daily-report-content').forEach(c => c.classList.remove('active')); tab.classList.add('active'); document.getElementById(tab.dataset.tab).classList.add('active'); }));
     
-    // ★ FIX #7: Reports - Print + Share
+    // Reports
     document.getElementById('generateReportBtn').addEventListener('click', generateReport);
-    document.getElementById('exportReportBtn').addEventListener('click', exportReport); // Export as Excel
+    document.getElementById('exportReportBtn').addEventListener('click', exportReport); 
     
     // Reminders
     document.getElementById('quickSendReminderBtn').addEventListener('click', () => document.querySelector('.reminders-tab[data-tab="quickSend"]')?.click());
@@ -7154,7 +7231,7 @@ function initEventListeners() {
 function scrollToHelp(id) { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
 
 // ==================== APPLICATION INITIALIZATION ====================
-function initApp() {
+async function initApp() {
     // Apply saved theme
     const savedTheme = localStorage.getItem('dlms_theme') || 'dark';
     document.documentElement.setAttribute('data-theme', savedTheme);
@@ -7166,14 +7243,20 @@ function initApp() {
     document.getElementById('currentLanguage').textContent = APP.language.toUpperCase();
     document.querySelectorAll('.language-option').forEach(o => o.classList.toggle('active', o.dataset.lang === APP.language));
 
-    // Seed initial data if empty
+    // Seed initial local data if empty
     seedData();
 
-    // ★ FIX #1: Check for existing session before showing login
-    const hasSession = restoreSession();
+    // Check for existing session
+    const hasSession = await restoreSession();
     if (hasSession) {
         applySessionUI();
         addAuditLog('login', 'Authentication', `Session restored for ${APP.currentUser.username}`);
+        
+        // ★ Sync latest data from Supabase Cloud silently in the background
+        DB.syncFromCloud().then(() => {
+            // Refresh dashboard with latest cloud data once loaded
+            if (APP.currentSection === 'dashboard') initDashboard();
+        });
     }
 
     // Set current date display
@@ -7190,16 +7273,19 @@ function initApp() {
     // Auto-save before unload
     window.addEventListener('beforeunload', () => addAuditLog('system', 'System', 'Session paused'));
 
-    // Keyboard shortcuts
-    document.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); const searchInput = document.getElementById('helpSearchInput') || document.getElementById('searchName'); if (searchInput) searchInput.focus(); } });
-
-    // Periodic overdue check
-    setInterval(() => { const loans = DB.loans.filter(l => ['active', 'disbursed'].includes(l.status)); let changed = false; loans.forEach(l => { if (new Date(l.dueDate) < new Date() && l.status !== 'overdue') { l.status = 'overdue'; changed = true; } }); if (changed) DB.loans = DB.loans; }, 60000);
+    // Periodic overdue check & Cloud Sync
+    setInterval(() => { 
+        const loans = DB.loans.filter(l => ['active', 'disbursed'].includes(l.status)); 
+        let changed = false; 
+        loans.forEach(l => { if (new Date(l.dueDate) < new Date() && l.status !== 'overdue') { l.status = 'overdue'; changed = true; } }); 
+        if (changed) DB.loans = DB.loans; 
+    }, 60000);
 
     console.log('%c✅ DLMs-Pro v3.5 — Enterprise Loan Management System Initialized', 'color: #00d296; font-size: 14px; font-weight: bold;');
-    console.log('%cDeveloped by David Mwakajoka', 'color: #4facfe; font-size: 11px;');
+    console.log('%c☁️ Connected to Supabase Cloud', 'color: #4facfe; font-size: 12px;');
 }
 
 // Start the application
-document.addEventListener('DOMContentLoaded', initApp);</script></body>
+document.addEventListener('DOMContentLoaded', initApp);
+</script></body>
 </html>
