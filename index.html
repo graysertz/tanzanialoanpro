@@ -5492,21 +5492,21 @@ kbd { display: inline-block; padding: 1px 5px; font-size: 0.7rem; font-family: m
    ★ Offline Fallback to LocalStorage
    ============================================================ */
 
-
 // ==================== SUPABASE INITIALIZATION ====================
 const SUPABASE_URL = 'https://ebcmxrbgkwidnkvteiyt.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_I1kO3hd6hVWklxhIJ4Zh8Q_lMKG6xY5';
 
-let supabase;
+let supabaseClient = null;
 try {
-    if (window.supabase) {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    if (window.supabase && window.supabase.createClient) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         console.log('✅ Supabase Connected Successfully');
     } else {
-        console.warn('Supabase JS library not loaded.');
+        console.warn('⚠️ Supabase JS library not loaded. Running in offline mode.');
     }
 } catch (error) {
-    console.error('Supabase initialization error:', error);
+    console.error('❌ Supabase initialization error:', error);
+    console.warn('⚠️ Running in offline mode. Data will be saved locally only.');
 }
 
 // ==================== PWA SERVICE WORKER ====================
@@ -5778,17 +5778,17 @@ const DB = {
 
     // ★ Supabase Sync Layer tailored for your SQL Schema
     async _supabaseUpsert(key, data) {
-        if (!supabase) return;
+        if (!supabaseClient) return;
         const tableName = this._tableMap[key];
         if (!tableName) return;
 
         try {
             if (tableName === 'settings') {
                 // Handle the 1-row JSONB settings table
-                await supabase.from('settings').upsert({ id: 1, data: data }, { onConflict: 'id' });
+                await supabaseClient.from('settings').upsert({ id: 1, data: data }, { onConflict: 'id' });
             } else if (Array.isArray(data) && data.length > 0) {
                 // Handle array tables (borrowers, loans, etc.)
-                await supabase.from(tableName).upsert(data, { onConflict: 'id' });
+                await supabaseClient.from(tableName).upsert(data, { onConflict: 'id' });
             }
         } catch (err) {
             console.error(`Supabase upsert error (${tableName}):`, err.message);
@@ -5796,11 +5796,11 @@ const DB = {
     },
     
     async _supabaseDelete(key, id) {
-        if (!supabase) return;
+        if (!supabaseClient) return;
         const tableName = this._tableMap[key];
         if (!tableName) return;
         try {
-            await supabase.from(tableName).delete().eq('id', id);
+            await supabaseClient.from(tableName).delete().eq('id', id);
         } catch (err) {
             console.error(`Supabase delete error (${tableName}):`, err.message);
         }
@@ -5808,17 +5808,17 @@ const DB = {
 
     // ★ Fetch latest data from Supabase to update local UI
     async syncFromCloud() {
-        if (!supabase) return;
+        if (!supabaseClient) return;
         try {
             // Fetch Settings (1 row JSONB)
-            const { data: settData } = await supabase.from('settings').select('data').eq('id', 1).single();
+            const { data: settData } = await supabaseClient.from('settings').select('data').eq('id', 1).single();
             if (settData) { this._set('settings', settData.data); }
 
             // Fetch all array tables
             const tablesToSync = Object.keys(this._tableMap).filter(k => k !== 'settings');
             for (const key of tablesToSync) {
                 const tableName = this._tableMap[key];
-                const { data, error } = await supabase.from(tableName).select('*');
+                const { data, error } = await supabaseClient.from(tableName).select('*');
                 if (!error && data) {
                     this._set(key, data); // Update localStorage
                 } else if (error) {
@@ -6141,15 +6141,14 @@ async function handleLogin(e) {
   const email = `${username}@dlms-pro.app`;
 
   try {
-    if (!supabase) throw new Error('Supabase not connected. Check your internet.');
+    if (!supabaseClient) console.warn('⚠️ Supabase not connected. Using offline mode.'); return;
 
     // 1. Sign in with Supabase Auth
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
     if (error) throw error;
 
     // 2. After successful login, fetch the user profile from our 'user_profiles' table
-    const { data: profile, error: profileError } = await supabase
-      .from('user_profiles')
+    const { data: profile, error: profileError } = await supabaseClient .from('user_profiles')
       .select('*')
       .eq('id', data.user.id)
       .single();
@@ -6158,7 +6157,7 @@ async function handleLogin(e) {
     
     if (profileError || !profile) {
       // Profile missing – create it (should not happen if trigger works, but just in case)
-      const { error: insertError } = await supabase
+      const { error: insertError } = await supabaseClient
         .from('user_profiles')
         .insert([{
           id: data.user.id,
@@ -6215,8 +6214,8 @@ async function handleLogin(e) {
 
 // ★ Restore session from Supabase Auth or LocalStorage
 async function restoreSession() {
-    if (supabase) {
-        const { data } = await supabase.auth.getSession();
+    if (supabaseClient) {
+        const { data } = await supabaseClient.auth.getSession();
         if (data.session) {
             const meta = data.session.user.user_metadata || {};
             APP.currentUser = localStorage.getItem('dlms_session') ? JSON.parse(localStorage.getItem('dlms_session')) : null;
@@ -6258,7 +6257,7 @@ function updateUserHeaderPhoto() {
 
 async function handleLogout() {
     addAuditLog('logout', 'Authentication', `User ${APP.currentUser?.username} logged out`);
-    if (supabase) await supabase.auth.signOut();
+    if (supabaseClient) await supabaseClient.auth.signOut();
     APP.currentUser = null;
     localStorage.removeItem('dlms_session');
     document.getElementById('mainApp').classList.remove('active');
@@ -7287,7 +7286,34 @@ async function initApp() {
     console.log('%c☁️ Connected to Supabase Cloud', 'color: #4facfe; font-size: 12px;');
 }
 
-// Start the application
-document.addEventListener('DOMContentLoaded', initApp);
+// ==================== ERROR HANDLING & FALLBACKS ====================
+
+// Global error handler to ensure loader always hides
+window.addEventListener('error', function(e) {
+    console.error('Global error:', e.error);
+    const loader = document.getElementById('pageLoader');
+    if (loader) loader.classList.add('hidden');
+});
+
+window.addEventListener('unhandledrejection', function(e) {
+    console.error('Unhandled promise rejection:', e.reason);
+    const loader = document.getElementById('pageLoader');
+    if (loader) loader.classList.add('hidden');
+});
+
+// Start the application with error handling
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+        initApp();
+    } catch (err) {
+        console.error('Critical initialization error:', err);
+        const loader = document.getElementById('pageLoader');
+        if (loader) loader.classList.add('hidden');
+
+        // Show error message but keep the app usable
+        showToast('System initialized in offline mode. Some features may be limited.', 'warning');
+    }
+});
 </script></body>
 </html>
+
