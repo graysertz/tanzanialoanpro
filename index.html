@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="theme-color" content="#0a0f1a">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>DLMs-Pro — Enterprise Loan Management System v3.5</title>
     <link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;DLMs-Pro&quot;,&quot;short_name&quot;:&quot;DLMS&quot;,&quot;display&quot;:&quot;standalone&quot;}">
@@ -5499,9 +5500,9 @@ let supabase;
 try {
     if (window.supabase) {
         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        console.log('%c✅ Supabase Connected Successfully', 'color: #00d296; font-size: 12px; font-weight: bold;');
+        console.log('✅ Supabase Connected Successfully');
     } else {
-        console.warn('Supabase JS library not loaded. Falling back to offline mode.');
+        console.warn('Supabase JS library not loaded.');
     }
 } catch (error) {
     console.error('Supabase initialization error:', error);
