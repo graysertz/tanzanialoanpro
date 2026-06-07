@@ -5778,71 +5778,20 @@ const DB = {
 
     // ★ Supabase Sync Layer tailored for your SQL Schema
     async _supabaseUpsert(key, data) {
-        if (!supabaseClient || !supabaseSyncStatus.enabled) return;
+        if (!supabaseClient) return;
         const tableName = this._tableMap[key];
         if (!tableName) return;
-
-        // Skip if we already know this table doesn't exist in Supabase
-        if (supabaseSyncStatus.checked && supabaseSyncStatus.unavailableTables.has(tableName)) {
-            return;
-        }
-
-        // Stop trying after too many consecutive errors
-        if (supabaseSyncStatus.consecutiveErrors >= supabaseSyncStatus.maxErrors) {
-            if (supabaseSyncStatus.consecutiveErrors === supabaseSyncStatus.maxErrors) {
-                console.warn('⛔ Cloud sync disabled after too many errors. Fix Supabase schema to re-enable.');
-                supabaseSyncStatus.enabled = false;
-            }
-            return;
-        }
-
-        // Skip sync if not authenticated (RLS requires auth)
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if (!session) return;
 
         try {
             if (tableName === 'settings') {
                 // Handle the 1-row JSONB settings table
-                const { error } = await supabaseClient.from('settings').upsert({ id: 1, data: data }, { onConflict: 'id' });
-                if (error) {
-                    supabaseSyncStatus.consecutiveErrors++;
-                    console.warn(`⚠️ Supabase upsert warning (${tableName}):`, error.message, `(error ${supabaseSyncStatus.consecutiveErrors}/${supabaseSyncStatus.maxErrors})`);
-                    if (error.code === '42P01' || error.message.includes('does not exist')) {
-                        supabaseSyncStatus.unavailableTables.add(tableName);
-                        console.warn(`⛔ Table '${tableName}' does not exist. Run SQL schema.`);
-                    }
-                    if (error.code === '42501' || error.message.includes('row-level security')) {
-                        console.warn(`🔒 Table '${tableName}' blocked by RLS. Add policies in Supabase.`);
-                    }
-                } else {
-                    supabaseSyncStatus.consecutiveErrors = 0;
-                }
+                await supabaseClient.from('settings').upsert({ id: 1, data: data }, { onConflict: 'id' });
             } else if (Array.isArray(data) && data.length > 0) {
                 // Handle array tables (borrowers, loans, etc.)
-                // Batch upsert in chunks of 50 to avoid payload limits
-                const chunkSize = 50;
-                for (let i = 0; i < data.length; i += chunkSize) {
-                    const chunk = data.slice(i, i + chunkSize);
-                    const { error } = await supabaseClient.from(tableName).upsert(chunk, { onConflict: 'id' });
-                    if (error) {
-                        supabaseSyncStatus.consecutiveErrors++;
-                        console.warn(`⚠️ Supabase upsert warning (${tableName}, chunk ${Math.floor(i/chunkSize)+1}):`, error.message, `(error ${supabaseSyncStatus.consecutiveErrors}/${supabaseSyncStatus.maxErrors})`);
-                        if (error.code === '42P01' || error.message.includes('does not exist')) {
-                            supabaseSyncStatus.unavailableTables.add(tableName);
-                            console.warn(`⛔ Table '${tableName}' does not exist. Run SQL schema. Cloud sync paused for this table.`);
-                            break;
-                        }
-                        if (error.code === '42501' || error.message.includes('row-level security')) {
-                            console.warn(`🔒 Table '${tableName}' blocked by RLS. Add policies in Supabase.`);
-                            break;
-                        }
-                    } else {
-                        supabaseSyncStatus.consecutiveErrors = 0;
-                    }
-                }
+                await supabaseClient.from(tableName).upsert(data, { onConflict: 'id' });
             }
         } catch (err) {
-            console.error(`❌ Supabase upsert error (${tableName}):`, err.message || err);
+            console.error(`Supabase upsert error (${tableName}):`, err.message);
         }
     },
     
@@ -5850,40 +5799,20 @@ const DB = {
         if (!supabaseClient) return;
         const tableName = this._tableMap[key];
         if (!tableName) return;
-
-        // Skip if not authenticated
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if (!session) return;
-
         try {
-            const { error } = await supabaseClient.from(tableName).delete().eq('id', id);
-            if (error) {
-                console.warn(`⚠️ Supabase delete warning (${tableName}):`, error.message);
-            }
+            await supabaseClient.from(tableName).delete().eq('id', id);
         } catch (err) {
-            console.error(`❌ Supabase delete error (${tableName}):`, err.message || err);
+            console.error(`Supabase delete error (${tableName}):`, err.message);
         }
     },
 
     // ★ Fetch latest data from Supabase to update local UI
     async syncFromCloud() {
         if (!supabaseClient) return;
-
-        // Skip if not authenticated
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if (!session) {
-            console.warn('⚠️ Not authenticated, skipping cloud sync');
-            return;
-        }
-
         try {
             // Fetch Settings (1 row JSONB)
-            const { data: settData, error: settError } = await supabaseClient.from('settings').select('data').eq('id', 1).single();
-            if (settError) {
-                console.warn('⚠️ Settings sync failed:', settError.message);
-            } else if (settData) { 
-                this._set('settings', settData.data); 
-            }
+            const { data: settData } = await supabaseClient.from('settings').select('data').eq('id', 1).single();
+            if (settData) { this._set('settings', settData.data); }
 
             // Fetch all array tables
             const tablesToSync = Object.keys(this._tableMap).filter(k => k !== 'settings');
@@ -5893,15 +5822,12 @@ const DB = {
                 if (!error && data) {
                     this._set(key, data); // Update localStorage
                 } else if (error) {
-                    console.warn(`⚠️ Sync failed for ${tableName}:`, error.message);
-                    if (error.code === '42P01' || error.message.includes('does not exist')) {
-                        console.warn(`⛔ Table ${tableName} does not exist in Supabase. Run the SQL schema first.`);
-                    }
+                    console.warn(`Sync failed for ${tableName}:`, error.message);
                 }
             }
             console.log('%c☁️ Cloud sync complete', 'color: #4facfe;');
         } catch (err) {
-            console.error('❌ Cloud sync error:', err.message || err);
+            console.error('Cloud sync error:', err);
         }
     },
 
@@ -5951,183 +5877,6 @@ const DB = {
     get reminderHistory() { return this._get('reminderHistory'); }, 
     set reminderHistory(v) { this._set('reminderHistory', v); this._supabaseUpsert('reminderHistory', v); }
 };
-
-// Track which tables are available in Supabase to avoid repeated 400 errors
-const supabaseSyncStatus = { availableTables: new Set(), unavailableTables: new Set(), checked: false, enabled: false, consecutiveErrors: 0, maxErrors: 5 };
-
-function updateSyncStatus() {
-    const dot = document.getElementById('cloudSyncDot');
-    const label = document.getElementById('cloudSyncLabel');
-    if (!dot || !label) return;
-
-    if (!supabaseClient) {
-        dot.style.background = '#ff4757';
-        label.textContent = 'No Cloud';
-        return;
-    }
-
-    if (!supabaseSyncStatus.enabled) {
-        dot.style.background = '#ffa502';
-        label.textContent = 'Sync Paused';
-        return;
-    }
-
-    if (supabaseSyncStatus.checked && supabaseSyncStatus.availableTables.size > 0) {
-        dot.style.background = '#2ed573';
-        label.textContent = 'Cloud Sync';
-    } else if (supabaseSyncStatus.checked) {
-        dot.style.background = '#ffa502';
-        label.textContent = 'Schema Missing';
-    } else {
-        dot.style.background = '#74b9ff';
-        label.textContent = 'Checking...';
-    }
-}
-
-function enableCloudSync() {
-    supabaseSyncStatus.enabled = true;
-    supabaseSyncStatus.consecutiveErrors = 0;
-    supabaseSyncStatus.checked = false;
-    supabaseSyncStatus.unavailableTables.clear();
-    console.log('☁️ Cloud sync manually enabled');
-    showToast('☁️ Cloud sync enabled. Checking Supabase tables...', 'info');
-    checkSupabaseTables();
-    updateSyncStatus();
-}
-
-function disableCloudSync() {
-    supabaseSyncStatus.enabled = false;
-    console.log('☁️ Cloud sync manually disabled');
-    showToast('☁️ Cloud sync disabled. Running in offline mode.', 'info');
-    updateSyncStatus();
-}
-
-async function checkSupabaseTables() {
-    if (!supabaseClient || supabaseSyncStatus.checked) return;
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    if (!session) return;
-
-    try {
-        // Try to query each table to see if it exists
-        const tables = ['borrowers', 'loans', 'repayments', 'branches', 'penalties', 'users', 'expenses', 'settings', 'notifications'];
-        for (const table of tables) {
-            const { error } = await supabaseClient.from(table).select('id', { count: 'exact', head: true });
-            if (error) {
-                if (error.code === '42P01' || error.message.includes('does not exist')) {
-                    supabaseSyncStatus.unavailableTables.add(table);
-                    console.warn(`⛔ Table '${table}' does not exist in Supabase. Run the SQL schema.`);
-                } else if (error.code === '42501' || error.message.includes('row-level security')) {
-                    console.warn(`🔒 Table '${table}' blocked by RLS. Add policies in Supabase.`);
-                }
-            } else {
-                supabaseSyncStatus.availableTables.add(table);
-            }
-        }
-        supabaseSyncStatus.checked = true;
-
-        if (supabaseSyncStatus.unavailableTables.size > 0) {
-            showToast('⚠️ Some Supabase tables are missing. Run the SQL schema in Supabase SQL Editor.', 'warning', 8000);
-        }
-    } catch (err) {
-        console.error('Table check error:', err);
-    }
-}
-
-// Track which tables are available in Supabase to avoid repeated 400 errors
-const supabaseSyncStatus = { availableTables: new Set(), unavailableTables: new Set(), checked: false, enabled: false, consecutiveErrors: 0, maxErrors: 5 };
-
-function updateSyncStatus() {
-    const dot = document.getElementById('cloudSyncDot');
-    const label = document.getElementById('cloudSyncLabel');
-    if (!dot || !label) return;
-
-    if (!supabaseClient) {
-        dot.style.background = '#ff4757';
-        label.textContent = 'No Cloud';
-        return;
-    }
-
-    if (!supabaseSyncStatus.enabled) {
-        dot.style.background = '#ffa502';
-        label.textContent = 'Sync Paused';
-        return;
-    }
-
-    if (supabaseSyncStatus.checked && supabaseSyncStatus.availableTables.size > 0) {
-        dot.style.background = '#2ed573';
-        label.textContent = 'Cloud Sync';
-    } else if (supabaseSyncStatus.checked) {
-        dot.style.background = '#ffa502';
-        label.textContent = 'Schema Missing';
-    } else {
-        dot.style.background = '#74b9ff';
-        label.textContent = 'Checking...';
-    }
-}
-
-function enableCloudSync() {
-    supabaseSyncStatus.enabled = true;
-    supabaseSyncStatus.consecutiveErrors = 0;
-    supabaseSyncStatus.checked = false;
-    supabaseSyncStatus.unavailableTables.clear();
-    console.log('☁️ Cloud sync manually enabled');
-    showToast('☁️ Cloud sync enabled. Checking Supabase tables...', 'info');
-    checkSupabaseTables();
-    updateSyncStatus();
-}
-
-function disableCloudSync() {
-    supabaseSyncStatus.enabled = false;
-    console.log('☁️ Cloud sync manually disabled');
-    showToast('☁️ Cloud sync disabled. Running in offline mode.', 'info');
-    updateSyncStatus();
-}
-
-async function checkSupabaseTables() {
-    if (!supabaseClient || supabaseSyncStatus.checked) return;
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    if (!session) {
-        supabaseSyncStatus.enabled = false;
-        return;
-    }
-
-    try {
-        // Try to query each table to see if it exists
-        const tables = ['borrowers', 'loans', 'repayments', 'branches', 'penalties', 'users', 'expenses', 'settings', 'notifications'];
-        let missingCount = 0;
-        let rlsBlocked = 0;
-        for (const table of tables) {
-            const { error } = await supabaseClient.from(table).select('id', { count: 'exact', head: true });
-            if (error) {
-                if (error.code === '42P01' || error.message.includes('does not exist')) {
-                    supabaseSyncStatus.unavailableTables.add(table);
-                    missingCount++;
-                } else if (error.code === '42501' || error.message.includes('row-level security') || error.message.includes('new row violates')) {
-                    rlsBlocked++;
-                }
-            } else {
-                supabaseSyncStatus.availableTables.add(table);
-            }
-        }
-        supabaseSyncStatus.checked = true;
-
-        if (missingCount > 0 || rlsBlocked > 0) {
-            console.warn(`⚠️ Supabase issues: ${missingCount} table(s) missing, ${rlsBlocked} blocked by RLS. Run the SQL schema.`);
-            showToast('⚠️ Supabase tables missing or blocked. Cloud sync paused. Run SQL schema in Supabase.', 'warning', 6000);
-            // Keep sync disabled until user fixes the schema
-            supabaseSyncStatus.enabled = false;
-        } else if (tables.length > 0) {
-            console.log('%c☁️ All Supabase tables verified — Cloud sync active', 'color: #00d296;');
-            showToast('☁️ Cloud sync active! All tables verified.', 'success', 4000);
-            supabaseSyncStatus.enabled = true;
-        }
-        updateSyncStatus();
-    } catch (err) {
-        console.error('Table check error:', err);
-        supabaseSyncStatus.enabled = false;
-        updateSyncStatus();
-    }
-}
 
 // ==================== UTILITIES ====================
 function uid() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 5); }
@@ -7535,9 +7284,6 @@ async function initApp() {
 
     console.log('%c✅ DLMs-Pro v3.5 — Enterprise Loan Management System Initialized', 'color: #00d296; font-size: 14px; font-weight: bold;');
     console.log('%c☁️ Connected to Supabase Cloud', 'color: #4facfe; font-size: 12px;');
-    
-    // Verify Supabase tables exist (warns if schema not run yet)
-    checkSupabaseTables();
 }
 
 // ==================== ERROR HANDLING & FALLBACKS ====================
@@ -7570,5 +7316,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script></body>
 </html>
-
 
