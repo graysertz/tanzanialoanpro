@@ -6118,11 +6118,11 @@ function seedData() {
         { id: 'p1', loanId: 'l3', borrowerId: 'b3', amount: 5000, type: 'late_payment', reason: 'Payment 7 days overdue', status: 'unpaid', createdAt: '2024-05-22T10:00:00Z' },
         { id: 'p2', loanId: 'l4', borrowerId: 'b4', amount: 10000, type: 'default', reason: 'Default on loan - 30 days overdue', status: 'unpaid', createdAt: '2024-07-01T08:00:00Z' }
     ];
-    DB.users = [
-        { id: 'u1', name: 'Admin User', username: 'admin', email: 'admin@dlms-pro.co.tz', phone: '+255 700 000 001', role: 'admin', branch: '1', status: 'active', photo: null, lastLogin: new Date().toISOString(), createdAt: '2024-01-01T00:00:00Z' },
-        { id: 'u2', name: 'Anna Mwangi', username: 'anna', email: 'anna@dlms-pro.co.tz', phone: '+255 700 000 002', role: 'manager', branch: '1', status: 'active', photo: null, lastLogin: '2024-04-10T08:00:00Z', createdAt: '2024-01-15T00:00:00Z' },
-        { id: 'u3', name: 'Peter Kimathi', username: 'peter', email: 'peter@dlms-pro.co.tz', phone: '+255 700 000 003', role: 'loan_officer', branch: '1', status: 'active', photo: null, lastLogin: '2024-04-12T09:00:00Z', createdAt: '2024-02-01T00:00:00Z' },
-        { id: 'u4', name: 'Sarah Juma', username: 'sarah', email: 'sarah@dlms-pro.co.tz', phone: '+255 700 000 004', role: 'accountant', branch: '2', status: 'active', photo: null, lastLogin: '2024-04-11T10:00:00Z', createdAt: '2024-02-10T00:00:00Z' }
+       DB.users = [
+        { id: 'u1', fullName: 'Admin User', username: 'admin', email: 'admin@dlms-pro.co.tz', phone: '+255 700 000 001', role: 'admin', branch: '1', status: 'active', photo: null, lastLogin: new Date().toISOString(), createdAt: '2024-01-01T00:00:00Z' },
+        { id: 'u2', fullName: 'Anna Mwangi', username: 'anna', email: 'anna@dlms-pro.co.tz', phone: '+255 700 000 002', role: 'manager', branch: '1', status: 'active', photo: null, lastLogin: '2024-04-10T08:00:00Z', createdAt: '2024-01-15T00:00:00Z' },
+        { id: 'u3', fullName: 'Peter Kimathi', username: 'peter', email: 'peter@dlms-pro.co.tz', phone: '+255 700 000 003', role: 'loan_officer', branch: '1', status: 'active', photo: null, lastLogin: '2024-04-12T09:00:00Z', createdAt: '2024-02-01T00:00:00Z' },
+        { id: 'u4', fullName: 'Sarah Juma', username: 'sarah', email: 'sarah@dlms-pro.co.tz', phone: '+255 700 000 004', role: 'accountant', branch: '2', status: 'active', photo: null, lastLogin: '2024-04-11T10:00:00Z', createdAt: '2024-02-10T00:00:00Z' }
     ];
     DB.reminderTemplates = [
         { id: 'rt1', name: 'Payment Reminder (Before Due)', category: 'reminder', channels: ['sms', 'whatsapp', 'email'], smsContent: 'Dear {borrower_name}, your payment of {amount_due} is due on {due_date}. Please pay on time. - {company_name}', whatsappContent: 'Hello {borrower_name}! 📋\n\nThis is a friendly reminder that your loan payment of *{amount_due}* is due on *{due_date}*.\n\nPlease make your payment to avoid late fees.\n\nThank you!\n{company_name}', emailSubject: 'Payment Reminder - {company_name}', emailContent: 'Dear {borrower_name},\n\nThis is a reminder that your loan payment of {amount_due} is due on {due_date}.\n\nPlease make your payment promptly to avoid penalties.\n\nBest regards,\n{company_name}', createdAt: '2024-01-01T00:00:00Z' },
@@ -6181,7 +6181,7 @@ async function handleLogin(e) {
             .eq('id', data.user.id)
             .single();
 
-        let userRole, userBranch, userName, userPhoto;
+                      let userRole, userBranch, userFullName, userPhoto;
         
         if (profileError || !profile) {
             // Profile missing – create it (fallback for first-time setup)
@@ -6199,12 +6199,13 @@ async function handleLogin(e) {
             
             userRole = role;
             userBranch = branch;
-            userName = username;
+            userFullName = username;
             userPhoto = null;
         } else {
             userRole = profile.role;
             userBranch = profile.branch_id;
-            userName = profile.full_name || username;
+            // _toCamelCase converts full_name to fullName automatically
+            userFullName = profile.fullName || profile.full_name || username;
             userPhoto = profile.photo;
         }
 
@@ -6212,7 +6213,7 @@ async function handleLogin(e) {
         APP.currentUser = {
             id: data.user.id,
             username: username,
-            name: userName,
+            fullName: userFullName,
             role: userRole,
             branch: userBranch,
             photo: userPhoto,
@@ -6222,7 +6223,7 @@ async function handleLogin(e) {
         localStorage.setItem('dlms_session', JSON.stringify({
             id: APP.currentUser.id,
             username: APP.currentUser.username,
-            name: APP.currentUser.name,
+            fullName: APP.currentUser.fullName,
             role: APP.currentUser.role,
             branch: APP.currentUser.branch,
             email: APP.currentUser.email,
@@ -6306,8 +6307,8 @@ function applySessionUI() {
     if (!APP.currentUser) return;
     document.getElementById('loginSection').classList.add('hidden');
     document.getElementById('mainApp').classList.add('active');
-    document.getElementById('userName').textContent = APP.currentUser.name;
-    document.getElementById('profileName').textContent = APP.currentUser.name;
+    document.getElementById('userName').textContent = APP.currentUser.fullName;
+    document.getElementById('profileName').textContent = APP.currentUser.fullName;
     document.getElementById('userRole').textContent = getRoleLabel(APP.currentUser.role);
     document.getElementById('userRole').className = 'role-badge ' + getRoleBadgeClass(APP.currentUser.role);
     document.getElementById('profileRole').textContent = getRoleLabel(APP.currentUser.role);
@@ -6665,7 +6666,7 @@ function viewRepaymentDetails(rpmId) {
     document.getElementById('receiptRemainingBalance').innerHTML = `<strong style="color:var(--accent);">${Number(remainingAfter).toLocaleString()}</strong>`;
     document.getElementById('receiptRemainingBalanceLarge').textContent = formatCurrency(remainingAfter);
     document.getElementById('receiptAmountWords').textContent = numberToWords(Math.round(r.amount)) + ' Tanzanian Shillings Only';
-    document.getElementById('receiptProcessedBy').textContent = APP.currentUser ? `${APP.currentUser.name} (${getRoleLabel(APP.currentUser.role)})` : 'System';
+        document.getElementById('receiptProcessedBy').textContent = APP.currentUser ? `${APP.currentUser.fullName} (${getRoleLabel(APP.currentUser.role)})` : 'System';
     document.getElementById('repaymentDetailsContainer').scrollIntoView({ behavior: 'smooth' });
 }
 
@@ -6870,21 +6871,21 @@ function renderAdminPanel() {
 
 function renderUsersTable() {
     try {
-        document.querySelector('#usersTable tbody').innerHTML = DB.users.map(u => `<tr><td style="display:flex;align-items:center;gap:8px;">${renderPhoto(u.photo, 28, '0.7rem')}<span style="font-weight:600;">${escHtml(u.name)}</span></td><td>${escHtml(u.username)}</td><td><span class="role-badge ${getRoleBadgeClass(u.role)}">${getRoleLabel(u.role)}</span></td><td>${getBranchName(u.branch)}</td><td>${formatDateTime(u.lastLogin)}</td><td>${statusBadge(u.status)}</td><td><div class="action-buttons"><button class="btn btn-sm btn-secondary" onclick="editUser('${u.id}')"><i class="fas fa-edit"></i></button><button class="btn btn-sm btn-danger" onclick="toggleUserStatus('${u.id}')"><i class="fas fa-${u.status === 'active' ? 'ban' : 'check'}"></i></button></div></td></tr>`).join('');
+                document.querySelector('#usersTable tbody').innerHTML = DB.users.map(u => `<tr><td style="display:flex;align-items:center;gap:8px;">${renderPhoto(u.photo, 28, '0.7rem')}<span style="font-weight:600;">${escHtml(u.fullName)}</span></td><td><span class="role-badge ${getRoleBadgeClass(u.role)}">${getRoleLabel(u.role)}</span></td><td>${getBranchName(u.branch)}</td><td>${formatDateTime(u.lastLogin)}</td><td>${statusBadge(u.status)}</td><td><div class="action-buttons"><button class="btn btn-sm btn-secondary" onclick="editUser('${u.id}')"><i class="fas fa-edit"></i></button><button class="btn btn-sm btn-danger" onclick="toggleUserStatus('${u.id}')"><i class="fas fa-${u.status === 'active' ? 'ban' : 'check'}"></i></button></div></td></tr>`).join('');
     } catch(e) { console.error('Render users error:', e); }
 }
 
 function openAddUserModal() { try { document.getElementById('userModalTitle').textContent = 'Add New System User'; document.getElementById('userForm').reset(); document.getElementById('userId').value = ''; openModal('userModal'); } catch(e) { console.error('User modal error:', e); } }
-function editUser(id) { const u = DB.users.find(x => x.id === id); if (!u) return; try { document.getElementById('userModalTitle').textContent = 'Edit User'; document.getElementById('userId').value = u.id; document.getElementById('userNameInput').value = u.name; document.getElementById('userUsername').value = u.username; document.getElementById('userEmail').value = u.email; document.getElementById('userPhone').value = u.phone || ''; document.getElementById('userRole').value = u.role; document.getElementById('userBranch').value = u.branch; openModal('userModal'); } catch(e) { console.error('Edit user error:', e); } }
+function editUser(id) { const u = DB.users.find(x => x.id === id); if (!u) return; try { document.getElementById('userModalTitle').textContent = 'Edit User'; document.getElementById('userId').value = u.id; document.getElementById('userNameInput').value = u.fullName; document.getElementById('userUsername').value = u.username; document.getElementById('userEmail').value = u.email; document.getElementById('userPhone').value = u.phone || ''; document.getElementById('userRole').value = u.role; document.getElementById('userBranch').value = u.branch; openModal('userModal'); } catch(e) { console.error('Edit user error:', e); } }
 
 function saveUser() {
     try {
         const editId = document.getElementById('userId').value;
-        const name = document.getElementById('userNameInput').value.trim(), username = document.getElementById('userUsername').value.trim(), email = document.getElementById('userEmail').value.trim(), phone = document.getElementById('userPhone').value.trim(), role = document.getElementById('userRole').value, branch = document.getElementById('userBranch').value;
-        if (!name || !username || !email || !role || !branch) { showToast('Please fill required fields', 'error'); return; }
+                const fullName = document.getElementById('userNameInput').value.trim(), username = document.getElementById('userUsername').value.trim(), email = document.getElementById('userEmail').value.trim(), phone = document.getElementById('userPhone').value.trim(), role = document.getElementById('userRole').value, branch = document.getElementById('userBranch').value;
+        if (!fullName || !username || !email || !role || !branch) { showToast('Please fill required fields', 'error'); return; }
         const users = DB.users;
-        if (editId) { const idx = users.findIndex(u => u.id === editId); if (idx >= 0) { users[idx] = { ...users[idx], name, username, email, phone, role, branch }; addAuditLog('update', 'Users', `Updated user ${username}`); showToast('User updated', 'success'); } }
-        else { users.push({ id: uid(), name, username, email, phone, role, branch, photo: null, status: 'active', lastLogin: null, createdAt: new Date().toISOString() }); addAuditLog('create', 'Users', `Created user ${username}`); showToast('User created', 'success'); }
+        if (editId) { const idx = users.findIndex(u => u.id === editId); if (idx >= 0) { users[idx] = { ...users[idx], fullName, username, email, phone, role, branch }; addAuditLog('update', 'Users', `Updated user ${username}`); showToast('User updated', 'success'); } }
+        else { users.push({ id: uid(), fullName, username, email, phone, role, branch, photo: null, status: 'active', lastLogin: null, createdAt: new Date().toISOString() }); addAuditLog('create', 'Users', `Created user ${username}`); showToast('User created', 'success'); }
         DB.users = users; closeModal('userModal'); renderUsersTable();
     } catch(e) { console.error('Save user error:', e); showToast('Failed to save user', 'error'); }
 }
@@ -7168,7 +7169,7 @@ function openEditProfileModal() {
         const userRecord = DB.users.find(x => x.id === u.id) || {}; _tempUserPhoto = userRecord.photo || null;
         const modal = document.getElementById('profileModal'); const modalBody = modal.querySelector('.modal-body');
         modalBody.innerHTML = `<form id="editProfileForm"><div style="text-align:center;margin-bottom:20px;"><div style="position:relative;display:inline-block;"><div id="editProfilePhoto" style="width:80px;height:80px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--accent-dim);border:3px solid var(--accent);color:var(--accent);font-size:1.6rem;overflow:hidden;cursor:pointer;">${_tempUserPhoto ? `<img src="${_tempUserPhoto}" style="width:100%;height:100%;object-fit:cover;">` : '<i class="fas fa-user"></i>'}</div><input type="file" id="editProfilePhotoInput" accept="image/*" style="display:none;"><div style="position:absolute;bottom:0;right:0;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.7rem;cursor:pointer;" onclick="document.getElementById('editProfilePhotoInput').click();"><i class="fas fa-camera"></i></div></div><p style="font-size:0.72rem;color:var(--text-muted);margin-top:6px;">Click photo to change</p></div><div class="form-group"><label>Full Name *</label><input type="text" id="editProfileName" class="form-control" value="${escHtml(u.name || '')}" required></div><div class="form-group"><label>Email</label><input type="email" id="editProfileEmail" class="form-control" value="${escHtml(u.email || '')}"></div><div class="form-group"><label>Phone</label><input type="tel" id="editProfilePhone" class="form-control" value="${escHtml(u.phone || '')}"></div><div class="form-group"><label>New Password (leave blank to keep current)</label><input type="password" id="editProfilePassword" class="form-control" placeholder="Min 8 characters"></div></form>`;
-        modal.querySelector('.modal-footer').innerHTML = `<button class="btn btn-secondary" onclick="closeModal('profileModal')">Cancel</button><button class="btn btn-primary" onclick="saveProfileChanges()"><i class="fas fa-save"></i> Save Changes</button>`;
+        modal.querySelector('.modal-footer').innerHTML = `<button class="btn btn-secondary" onclick="closeModal('profileModal')">Cancel</button><button class="btn btn-primary" onclick="()"><i class="fas fa-save"></i> Save Changes</button>`;
         document.getElementById('editProfilePhotoInput').addEventListener('change', function(e) { const file = e.target.files[0]; if (!file) return; if (file.size > 500000) { showToast('Photo must be under 500KB', 'warning'); return; } const reader = new FileReader(); reader.onload = function(ev) { _tempUserPhoto = ev.target.result; document.getElementById('editProfilePhoto').innerHTML = `<img src="${_tempUserPhoto}" style="width:100%;height:100%;object-fit:cover;">`; }; reader.readAsDataURL(file); });
         document.getElementById('editProfilePhoto').addEventListener('click', () => document.getElementById('editProfilePhotoInput').click());
     } catch(e) { console.error('Edit profile modal error:', e); showToast('Failed to open profile editor', 'error'); }
@@ -7178,14 +7179,14 @@ function saveProfileChanges() {
     try {
         const name = document.getElementById('editProfileName').value.trim(), email = document.getElementById('editProfileEmail').value.trim(), phone = document.getElementById('editProfilePhone').value.trim();
         if (!name) { showToast('Name is required', 'error'); return; }
-        APP.currentUser.name = name; APP.currentUser.email = email; APP.currentUser.phone = phone; APP.currentUser.photo = _tempUserPhoto;
+                APP.currentUser.fullName = fullName; APP.currentUser.email = email; APP.currentUser.phone = phone; APP.currentUser.photo = _tempUserPhoto;
         const users = DB.users; const userIdx = users.findIndex(u => u.id === APP.currentUser.id);
-        if (userIdx >= 0) { users[userIdx].name = name; users[userIdx].email = email; users[userIdx].phone = phone; users[userIdx].photo = _tempUserPhoto; }
+        if (userIdx >= 0) { users[userIdx].fullName = fullName; users[userIdx].email = email; users[userIdx].phone = phone; users[userIdx].photo = _tempUserPhoto; }
         DB.users = users; 
         // Update session
         localStorage.setItem('dlms_session', JSON.stringify(APP.currentUser));
-        document.getElementById('userName').textContent = name; document.getElementById('profileName').textContent = name; updateUserHeaderPhoto();
-        addAuditLog('update', 'Users', `Profile updated for ${name}`); showToast('Profile updated successfully', 'success'); _tempUserPhoto = null; closeModal('profileModal');
+        document.getElementById('userName').textContent = fullName; document.getElementById('profileName').textContent = fullName; updateUserHeaderPhoto();
+        addAuditLog('update', 'Users', `Profile updated for ${fullName}`); showToast('Profile updated successfully', 'success'); _tempUserPhoto = null; closeModal('profileModal');
     } catch(e) { console.error('Save profile error:', e); showToast('Failed to save profile', 'error'); }
 }
 
