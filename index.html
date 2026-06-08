@@ -6132,89 +6132,91 @@ function seedData() {
     addNotification('System Initialized', 'DLMs-Pro has been set up with sample data', 'info');
 }
 
-// ★ FIX: PERSISTENT LOGIN — With LOCAL FALLBACK when Supabase is unavailable
+// ★ FIX #1: PERSISTENT LOGIN & COMPREHENSIVE ERROR HANDLING
 async function handleLogin(e) {
     e.preventDefault();
+    
     const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value;
     const role = document.getElementById('role').value;
     const branch = document.getElementById('branch').value;
     const errEl = document.getElementById('loginError');
     
+    // 1. Clear any previous error messages immediately
+    errEl.classList.remove('show');
+
+    // 2. Validate all fields
     if (!username || !password || !role || !branch) {
-        errEl.textContent = 'Please fill in all fields.';
+        errEl.textContent = 'Please fill in all required fields.';
         errEl.classList.add('show');
         return;
     }
-    
+
     const btn = document.getElementById('loginBtn');
     const btnText = document.getElementById('loginBtnText');
     const spinner = document.getElementById('loginSpinner');
+    
+    // 3. Show loading state
     btn.disabled = true;
     btnText.textContent = 'Signing In...';
     spinner.style.display = 'inline-block';
 
+    // Construct email for Supabase Auth
+    const email = `${username}@dlms-pro.app`;
+
     try {
-        // ★ TRY Supabase Auth first
-        if (supabaseClient && supabaseConnected) {
-            const email = `${username}@dlms-pro.app`;
-            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-            
-            if (!error && data.session) {
-                // Supabase auth succeeded — fetch profile
-                const { data: profile } = await supabaseClient
-                    .from('user_profiles')
-                    .select('*')
-                    .eq('id', data.user.id)
-                    .single();
-
-                APP.currentUser = {
-                    id: data.user.id,
-                    username: username,
-                    name: profile?.full_name || username,
-                    role: profile?.role || role,
-                    branch: profile?.branch_id || branch,
-                    photo: profile?.photo || null,
-                    email: data.user.email
-                };
-
-                localStorage.setItem('dlms_session', JSON.stringify({
-                    id: APP.currentUser.id,
-                    username: APP.currentUser.username,
-                    name: APP.currentUser.name,
-                    role: APP.currentUser.role,
-                    branch: APP.currentUser.branch,
-                    photo: APP.currentUser.photo,
-                    email: APP.currentUser.email,
-                    authMethod: 'supabase'
-                }));
-
-                applySessionUI();
-                addAuditLog('login', 'Authentication', `User ${username} logged in via Supabase as ${APP.currentUser.role}`);
-                addNotification('Welcome Back', `Signed in as ${getRoleLabel(APP.currentUser.role)}`, 'success');
-                errEl.classList.remove('show');
-                return; // Success — exit early
-            }
-            // If Supabase auth failed, fall through to local login
-            console.warn('Supabase auth failed, falling back to local login');
+        // 4. Check if Supabase is actually connected
+        if (!supabaseClient) {
+            throw new Error("System is currently offline. Please check your internet connection and try again.");
         }
 
-        // ★ LOCAL FALLBACK LOGIN — Works offline, no Supabase required
-        // Check against local users database
-        const localUser = DB.users.find(u => 
-            u.username === username && u.status === 'active'
-        );
+        // 5. Sign in with Supabase Auth
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) throw error;
 
-        // For demo: accept any password with valid username/role/branch
-        // In production, you'd hash and verify passwords
+        // 6. Fetch the user profile from 'user_profiles' table
+        const { data: profile, error: profileError } = await supabaseClient
+            .from('user_profiles')
+            .select('*')
+            .eq('id', data.user.id)
+            .single();
+
+        let userRole, userBranch, userName, userPhoto;
+        
+        if (profileError || !profile) {
+            // Profile missing – create it (fallback for first-time setup)
+            const { error: insertError } = await supabaseClient
+                .from('user_profiles')
+                .insert([{
+                    id: data.user.id,
+                    full_name: username,
+                    username: username,
+                    role: role,
+                    branch_id: branch,
+                    phone: ''
+                }]);
+            if (insertError) throw insertError;
+            
+            userRole = role;
+            userBranch = branch;
+            userName = username;
+            userPhoto = null;
+        } else {
+            userRole = profile.role;
+            userBranch = profile.branch_id;
+            userName = profile.full_name || username;
+            userPhoto = profile.photo;
+        }
+
+        // 7. Store complete session info locally
         APP.currentUser = {
-            id: localUser?.id || uid(),
+            id: data.user.id,
             username: username,
-            name: localUser?.name || username,
-            role: role,
-            branch: branch,
-            photo: localUser?.photo || null,
-            email: localUser?.email || `${username}@dlms-pro.app`
+            name: userName,
+            role: userRole,
+            branch: userBranch,
+            photo: userPhoto,
+            email: data.user.email
         };
 
         localStorage.setItem('dlms_session', JSON.stringify({
@@ -6223,48 +6225,36 @@ async function handleLogin(e) {
             name: APP.currentUser.name,
             role: APP.currentUser.role,
             branch: APP.currentUser.branch,
-            photo: APP.currentUser.photo,
             email: APP.currentUser.email,
-            authMethod: 'local'
+            photo: APP.currentUser.photo
         }));
 
+        // 8. Apply UI and log success
         applySessionUI();
-        addAuditLog('login', 'Authentication', `User ${username} logged in locally as ${role}`);
-        addNotification('Welcome Back', `Signed in as ${getRoleLabel(role)}`, 'success');
-        if (!supabaseConnected) {
-            showToast(t('loginOffline'), 'warning');
-        }
-        errEl.classList.remove('show');
-
+        addAuditLog('login', 'Authentication', `User ${username} logged in as ${userRole}`);
+        addNotification('Welcome Back', `Signed in as ${getRoleLabel(userRole)}`, 'success');
+        
     } catch (err) {
         console.error('Login error:', err);
         
-        // ★ EMERGENCY FALLBACK — Even if everything fails, allow login
-        APP.currentUser = {
-            id: uid(),
-            username: username,
-            name: username,
-            role: role,
-            branch: branch,
-            photo: null,
-            email: `${username}@dlms-pro.app`
-        };
+        // 9. Map technical errors to user-friendly messages
+        let errorMsg = 'Login failed. Please check your credentials and try again.';
         
-        localStorage.setItem('dlms_session', JSON.stringify({
-            id: APP.currentUser.id,
-            username: username,
-            name: username,
-            role: role,
-            branch: branch,
-            authMethod: 'emergency'
-        }));
+        if (err.message && err.message.includes('Invalid login credentials')) {
+            errorMsg = 'Invalid username or password. Please try again.';
+        } else if (err.message && err.message.includes('Email not confirmed')) {
+            errorMsg = 'Please verify your email address in your inbox before logging in.';
+        } else if (err.message && (err.message.includes('NetworkError') || err.message.includes('fetch') || err.message.includes('offline'))) {
+            errorMsg = 'Network error. Please check your internet connection.';
+        } else if (err.message) {
+            errorMsg = err.message; // Fallback to the actual error message
+        }
+
+        errEl.textContent = errorMsg;
+        errEl.classList.add('show');
         
-        applySessionUI();
-        addAuditLog('login', 'Authentication', `Emergency login for ${username} as ${role}`);
-        addNotification('Offline Login', `Signed in offline as ${getRoleLabel(role)}`, 'warning');
-        showToast(t('supabaseUnavailable'), 'warning');
-        errEl.classList.remove('show');
     } finally {
+        // 10. Always reset the button state, even if an error occurs
         btn.disabled = false;
         btnText.textContent = 'Sign In';
         spinner.style.display = 'none';
